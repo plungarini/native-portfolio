@@ -1,1 +1,190 @@
-// Per-transaction activity feed — implemented in Phase 4/5, per ARCHITECTURE.md §6.
+// Activity feed table — implemented in Phase 4, per ARCHITECTURE.md §6.
+// Wired against static fixtures only (Phase 5 hooks up useActivity for real).
+import { useState } from 'react'
+import {
+  ArrowClockwise,
+  DownloadSimple,
+} from '@phosphor-icons/react'
+import type { ActivityLegRow, ActivityRow } from '../../hooks/useActivity'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/Table'
+import { TableSection } from '../ui/TableSection'
+import { Pill } from '../ui/Pill'
+
+interface ActivityTableProps {
+  rows: ActivityRow[]
+  mainCurrency: string
+}
+
+function utcDayKey(timestamp: number): string {
+  return new Date(timestamp * 1000).toISOString().slice(0, 10)
+}
+
+function formatDayLabel(dayKey: string): string {
+  return new Date(`${dayKey}T00:00:00Z`).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+function formatTime(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'UTC',
+    hour12: false,
+  })
+}
+
+function shortenTxHash(txHash: string): string {
+  return txHash.length <= 10 ? txHash : `${txHash.slice(0, 6)}…${txHash.slice(-4)}`
+}
+
+function formatLeg(leg: ActivityLegRow, mainCurrency: string): string {
+  const sign = leg.direction === 'in' ? '+' : '-'
+  const amount = leg.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })
+  const value =
+    leg.valueMainCurrency === null
+      ? 'price unavailable'
+      : `${leg.valueMainCurrency.toFixed(4)} ${mainCurrency}`
+  return `${sign}${amount} (${value})`
+}
+
+function groupByUtcDay(rows: ActivityRow[]): [string, ActivityRow[]][] {
+  const byDay = new Map<string, ActivityRow[]>()
+  for (const row of rows) {
+    const key = utcDayKey(row.timestamp)
+    const existing = byDay.get(key)
+    if (existing) existing.push(row)
+    else byDay.set(key, [row])
+  }
+  return Array.from(byDay.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1))
+}
+
+export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
+  // Inert per the real data model — no failed/spam flags exist yet to filter on.
+  const [hideFailed, setHideFailed] = useState(false)
+  const [hideSpam, setHideSpam] = useState(false)
+
+  const days = groupByUtcDay(rows)
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          aria-pressed={hideFailed}
+          onClick={() => setHideFailed((v) => !v)}
+          className="rounded-full bg-border/70 px-2.5 py-1 text-xs text-foreground-secondary"
+        >
+          Hide failed
+        </button>
+        <button
+          type="button"
+          aria-pressed={hideSpam}
+          onClick={() => setHideSpam((v) => !v)}
+          className="rounded-full bg-border/70 px-2.5 py-1 text-xs text-foreground-secondary"
+        >
+          Hide spam
+        </button>
+        {/* No CSV-exportable data yet — button has no destination */}
+        <button
+          type="button"
+          aria-label="Export CSV"
+          className="ml-auto flex items-center gap-1 rounded-full bg-border/70 px-2.5 py-1 text-xs text-foreground-secondary"
+        >
+          <DownloadSimple weight="bold" />
+          Export
+        </button>
+        <button
+          type="button"
+          aria-label="Refresh"
+          className="rounded-full bg-border/70 p-1.5 text-foreground-secondary"
+        >
+          <ArrowClockwise weight="bold" />
+        </button>
+      </div>
+
+      {rows.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">No activity yet</p>
+      ) : (
+        days.map(([dayKey, dayRows]) => (
+          <TableSection
+            key={dayKey}
+            title={formatDayLabel(dayKey)}
+            badge={<Pill>{`${dayRows.length} activities`}</Pill>}
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-28">Time</TableHead>
+                  <TableHead>App</TableHead>
+                  <TableHead>Received</TableHead>
+                  <TableHead>Sent</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead className="w-16">Tx</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dayRows.map((row) => {
+                  const received = row.legs.filter((leg) => leg.direction === 'in')
+                  const sent = row.legs.filter((leg) => leg.direction === 'out')
+                  return (
+                    <TableRow key={row.txHash}>
+                      <TableCell className="w-28 text-sm text-muted-foreground">
+                        {formatTime(row.timestamp)}
+                      </TableCell>
+                      {/* No protocol/app name+logo field in ActivityRow yet */}
+                      <TableCell className="text-sm text-muted-foreground">--</TableCell>
+                      <TableCell>
+                        {received.map((leg, i) => (
+                          <div key={i} className="text-sm text-success">
+                            {formatLeg(leg, mainCurrency)}
+                          </div>
+                        ))}
+                      </TableCell>
+                      <TableCell>
+                        {sent.map((leg, i) => (
+                          <div key={i} className="text-sm text-destructive">
+                            {formatLeg(leg, mainCurrency)}
+                          </div>
+                        ))}
+                      </TableCell>
+                      {/* Tags column kept for layout parity — no tag data (Failed/Spam) in the model yet */}
+                      <TableCell />
+                      <TableCell className="w-16 text-sm text-muted-foreground">
+                        {shortenTxHash(row.txHash)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </TableSection>
+        ))
+      )}
+
+      {/* §6 calls for infinite scroll (5 pages) then "Load More" — useActivity
+          has no pagination cursor yet (it fetches one fixed-size page per
+          wallet), so this is a static affordance with nothing further to
+          load until that hook grows pagination support in a later phase. */}
+      {rows.length > 0 && (
+        <button
+          type="button"
+          disabled
+          className="self-center rounded-full bg-border/70 px-3 py-1.5 text-xs text-foreground-faint disabled:cursor-not-allowed"
+        >
+          Load More
+        </button>
+      )}
+    </div>
+  )
+}
