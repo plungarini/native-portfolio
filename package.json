@@ -14,6 +14,9 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@tanstack/query-sync-storage-persister": "^5.102.8",
+    "@tanstack/react-query": "^5.102.8",
+    "@tanstack/react-query-persist-client": "^5.102.8",
     "bs58": "^6.0.0",
     "fflate": "^0.8.3",
     "js-base64": "^3.9.3",
