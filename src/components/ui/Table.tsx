@@ -24,12 +24,12 @@ export function TableRow({ className, ...props }: ComponentPropsWithoutRef<'tr'>
 export function TableHead({ className, ...props }: ComponentPropsWithoutRef<'th'>) {
   return (
     <th
-      className={cx('h-12 text-left text-xs font-light text-muted-foreground', className)}
+      className={cx('h-12 px-2 text-left text-xs font-light text-muted-foreground', className)}
       {...props}
     />
   )
 }
 
 export function TableCell({ className, ...props }: ComponentPropsWithoutRef<'td'>) {
-  return <td className={className} {...props} />
+  return <td className={cx('px-2', className)} {...props} />
 }
