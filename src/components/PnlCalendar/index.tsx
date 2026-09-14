@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { CalendarBlank, CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { Modal } from '../ui/Modal'
 import type { PnlCalendarDay } from '../../hooks/usePnlCalendar'
+import { formatSignedUsd, formatUsd, formatSignedMainCurrency } from '../../lib/format/currency'
 
 interface PnlCalendarProps {
   days: PnlCalendarDay[]
@@ -44,11 +45,6 @@ function heatmapClasses(pnlUsd: number): string {
   const tiers = pnlUsd < 0 ? DESTRUCTIVE_TIERS : SUCCESS_TIERS
   const tier = magnitude < 10 ? 0 : magnitude < 100 ? 1 : 2
   return tiers[tier]
-}
-
-function formatUsd(value: number): string {
-  const sign = value > 0 ? '+' : ''
-  return `${sign}${value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`
 }
 
 export function PnlCalendar({ days, mainCurrency }: PnlCalendarProps) {
@@ -153,10 +149,10 @@ export function PnlCalendar({ days, mainCurrency }: PnlCalendarProps) {
           </div>
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>
-              Profit days {summary.profitCount} / {formatUsd(summary.profitValue)}
+              Profit days {summary.profitCount} / {formatSignedUsd(summary.profitValue)}
             </span>
             <span>
-              Loss days {summary.lossCount} / {formatUsd(summary.lossValue)}
+              Loss days {summary.lossCount} / {formatSignedUsd(summary.lossValue)}
             </span>
           </div>
         </div>
@@ -182,13 +178,10 @@ export function PnlCalendar({ days, mainCurrency }: PnlCalendarProps) {
                   <span
                     className={`text-sm font-medium ${cell.pnlUsd > 0 ? 'text-success' : cell.pnlUsd < 0 ? 'text-destructive' : 'text-foreground'}`}
                   >
-                    {cell.pnlMainCurrency?.toFixed(4)} {mainCurrency}
+                    {formatSignedMainCurrency(cell.pnlMainCurrency, mainCurrency)}
                   </span>
                   <span className="text-[10px] text-foreground-faint">
-                    {(cell.avgUsdPrice as number).toLocaleString('en-US', {
-                      style: 'currency',
-                      currency: 'USD',
-                    })}
+                    {formatUsd(cell.avgUsdPrice)}
                   </span>
                 </div>
               </div>

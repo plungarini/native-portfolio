@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { PnlCalendar } from './index'
 import { demoPnlDays } from '../../lib/fixtures/demoData'
+import type { PnlCalendarDay } from '../../hooks/usePnlCalendar'
+import { formatSignedMainCurrency, formatUsd } from '../../lib/format/currency'
 
 afterEach(cleanup)
 
@@ -50,5 +52,28 @@ describe('PnlCalendar', () => {
     expect(within(dialog).queryByText('2')).not.toBeInTheDocument()
     // A day with data, e.g. day 1, should render its number.
     expect(within(dialog).getByText('1')).toBeInTheDocument()
+  })
+
+  it('renders big/small text matching hand-computed §5.2 values for a scripted day', () => {
+    // Hand-computed per §5.2: dailyPnlMainCurrency(D) = dailyPnlUsd(D) / mainCurrencyAvgUsd(D)
+    // pnlUsd = 62, avgUsdPrice = 150 -> pnlMainCurrency = 62 / 150 = 0.41333...
+    const pnlUsd = 62
+    const avgUsdPrice = 150
+    const pnlMainCurrency = pnlUsd / avgUsdPrice
+    expect(pnlMainCurrency).toBeCloseTo(0.413333333, 9)
+
+    const day: PnlCalendarDay = {
+      date: '2026-09-05',
+      pnlUsd,
+      pnlMainCurrency,
+      avgUsdPrice,
+    }
+
+    render(<PnlCalendar days={[day]} mainCurrency="SOL" />)
+    fireEvent.click(screen.getByText('Calendar'))
+
+    // Uses the real format helpers from src/lib/format, not a re-implementation.
+    expect(screen.getByText(formatSignedMainCurrency(pnlMainCurrency, 'SOL'))).toBeInTheDocument()
+    expect(screen.getByText(formatUsd(avgUsdPrice))).toBeInTheDocument()
   })
 })

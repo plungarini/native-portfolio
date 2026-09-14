@@ -16,6 +16,8 @@ import {
 } from '../ui/Table'
 import { TableSection } from '../ui/TableSection'
 import { Pill } from '../ui/Pill'
+import { formatMainCurrency } from '../../lib/format/currency'
+import { formatAmount } from '../../lib/format/number'
 
 interface ActivityTableProps {
   rows: ActivityRow[]
@@ -50,11 +52,8 @@ function shortenTxHash(txHash: string): string {
 
 function formatLeg(leg: ActivityLegRow, mainCurrency: string): string {
   const sign = leg.direction === 'in' ? '+' : '-'
-  const amount = leg.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })
-  const value =
-    leg.valueMainCurrency === null
-      ? 'price unavailable'
-      : `${leg.valueMainCurrency.toFixed(4)} ${mainCurrency}`
+  const amount = formatAmount(leg.amount, { maxFractionDigits: 4 })
+  const value = formatMainCurrency(leg.valueMainCurrency, mainCurrency)
   return `${sign}${amount} (${value})`
 }
 

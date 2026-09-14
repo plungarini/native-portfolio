@@ -9,6 +9,8 @@ import {
   TableRow,
 } from '../ui/Table'
 import { TableSection } from '../ui/TableSection'
+import { formatUsd } from '../../lib/format/currency'
+import { formatAmount } from '../../lib/format/number'
 
 interface HoldingsTableProps {
   holdings: Holding[]
@@ -21,18 +23,6 @@ function avatarColorFor(symbol: string): string {
   let hash = 0
   for (let i = 0; i < symbol.length; i++) hash = (hash * 31 + symbol.charCodeAt(i)) >>> 0
   return AVATAR_COLORS[hash % AVATAR_COLORS.length]
-}
-
-function formatAmount(amount: number): string {
-  return amount.toLocaleString(undefined, { maximumFractionDigits: 4 })
-}
-
-function formatUsd(value: number): string {
-  return value.toLocaleString(undefined, {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 2,
-  })
 }
 
 export function HoldingsTable({ holdings, mainCurrency }: HoldingsTableProps) {
@@ -74,17 +64,17 @@ export function HoldingsTable({ holdings, mainCurrency }: HoldingsTableProps) {
                     <div className="text-sm font-medium text-foreground">
                       {priceUnavailable
                         ? 'price unavailable'
-                        : `${holding.mainCurrencyValue?.toFixed(4)} ${mainCurrency}`}
+                        : `${formatAmount(holding.mainCurrencyValue ?? 0, { maxFractionDigits: 4 })} ${mainCurrency}`}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {priceUnavailable
-                        ? `${formatAmount(holding.amountToken)} ${holding.symbol}`
-                        : `(${formatUsd(holding.usdValue ?? 0)})`}
+                        ? `${formatAmount(holding.amountToken, { maxFractionDigits: 4 })} ${holding.symbol}`
+                        : `(${formatUsd(holding.usdValue)})`}
                     </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-foreground">
-                      {priceUnavailable ? 'price unavailable' : formatUsd(holding.currentUsdPrice as number)}
+                      {priceUnavailable ? 'price unavailable' : formatUsd(holding.currentUsdPrice)}
                     </span>
                   </TableCell>
                   <TableCell>
