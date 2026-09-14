@@ -49,7 +49,7 @@ function App() {
       <div className="mx-auto flex max-w-4xl flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Tabs tabs={TABS} activeKey={activeTab} onChange={setActiveTab} />
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-3">
             {pnlCalendar.isStale && <StaleBadge />}
             <PnlCalendar days={pnlCalendar.days} mainCurrency={mainCurrency} />
             <CurrencySwitcher value={mainCurrency} onChange={setMainCurrency} options={CURRENCY_OPTIONS} />

@@ -8,7 +8,10 @@ interface CurrencySwitcherProps {
 
 export function CurrencySwitcher({ value, onChange, options }: CurrencySwitcherProps) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-full bg-input p-1" role="group">
+    <div
+      className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-input p-1"
+      role="group"
+    >
       {options.map((symbol) => {
         const active = symbol === value
         return (
