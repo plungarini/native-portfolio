@@ -49,13 +49,13 @@ export function HoldingsTable({ holdings, mainCurrency }: HoldingsTableProps) {
               return (
                 <TableRow key={holding.key}>
                   <TableCell className="w-[270px]">
-                    <div className="flex items-center gap-2 py-2">
+                    <div className="flex min-w-0 items-center gap-2 py-2">
                       <span
                         aria-hidden="true"
                         className="h-7 w-7 shrink-0 rounded-full"
                         style={{ backgroundColor: avatarColorFor(holding.symbol) }}
                       />
-                      <span className="text-sm font-medium text-foreground">
+                      <span className="min-w-0 truncate text-sm font-medium text-foreground">
                         {holding.symbol}
                       </span>
                     </div>

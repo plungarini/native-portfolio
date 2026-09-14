@@ -27,14 +27,14 @@ export function AllocationBreakdown({ holdings }: AllocationBreakdownProps) {
           return (
             <div
               key={holding.key}
-              className="flex items-center gap-1.5 rounded-full bg-muted px-2 py-1"
+              className="flex max-w-[220px] items-center gap-1.5 rounded-full bg-muted px-2 py-1"
             >
               <span
                 className="h-[28px] w-[28px] shrink-0 rounded-full"
                 style={{ backgroundColor: color, boxShadow: `0 0 0 2px ${color}` }}
               />
-              <span className="text-xs font-medium text-foreground">{holding.symbol}</span>
-              <span className="text-xs text-muted-foreground">
+              <span className="min-w-0 truncate text-xs font-medium text-foreground">{holding.symbol}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">
                 {pct !== null ? `${pct.toFixed(1)}%` : 'price unavailable'}
               </span>
             </div>

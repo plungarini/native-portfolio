@@ -93,6 +93,13 @@ function holdingKey(chain: ChainId, tokenId: string): string {
   return `${chain}:${tokenId}`
 }
 
+/** Display fallback for an SPL mint with no resolved symbol — this app does
+ * no on-chain metadata lookup, so an unrecognized token's only "name" is its
+ * mint address; shorten it so it reads as an identifier, not a wall of text. */
+function shortenMint(mint: string): string {
+  return mint.length <= 10 ? mint : `${mint.slice(0, 4)}…${mint.slice(-4)}`
+}
+
 /** Fetches + aggregates raw per-chain balances for every wallet, never
  * throwing: a failing wallet just contributes nothing and flips `hadErrors`. */
 async function collectBalances(
@@ -131,7 +138,7 @@ async function collectBalances(
           ])
           addAmount('solana', NATIVE_SOL_MINT, 'SOL', solBalance)
           for (const token of tokenBalances) {
-            addAmount('solana', token.mint, token.mint, token.uiAmount ?? 0)
+            addAmount('solana', token.mint, shortenMint(token.mint), token.uiAmount ?? 0)
           }
         } else {
           const [bnbBalance, tokenBalances] = await Promise.all([
