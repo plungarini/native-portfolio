@@ -28,6 +28,13 @@ jobs:
 
       - name: Test
         run: npm test
+        env:
+          # Dummy value, not the real secret: tests mock `fetch` and never hit
+          # the network, but assert on SOLANA_RPC_HOSTS having 2 entries
+          # (Helius primary + publicnode fallback) for host-rotation coverage.
+          # Using a placeholder (not `secrets.VITE_HELIUS_API_KEY`) keeps CI
+          # green on fork PRs too, since GitHub withholds secrets from those.
+          VITE_HELIUS_API_KEY: ci-placeholder-key
 
       - name: Build
         run: npm run build
