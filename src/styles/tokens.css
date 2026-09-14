@@ -1,0 +1,44 @@
+/* Design tokens for native-portfolio, per ARCHITECTURE.md §6 "Shared design tokens".
+   Tailwind v4 CSS-first config: every `--color-*` / `--font-*` / `--radius-*` variable
+   declared inside `@theme` is automatically turned into matching utility classes
+   (e.g. `--color-background` -> `bg-background`, `text-background`, `border-background`). */
+
+@theme {
+  /* Background layers: bg -> card -> input -> muted -> border */
+  --color-background: #090d10;
+  --color-card: #0d151e;
+  --color-input: #151e28;
+  --color-muted: #212a36;
+  --color-border: #19242e;
+
+  /* Text colors, most-to-least prominent */
+  --color-foreground: #e2e8f0;
+  --color-foreground-secondary: #cad5e2;
+  --color-muted-foreground: #90a1b9;
+  --color-foreground-faint: #67778e;
+
+  /* Brand / semantic accents */
+  --color-accent: #c7f284;
+  --color-success: #35d399;
+  --color-destructive: #fb7185;
+
+  /* Typography */
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Radii scale: xs (2px) .. 4xl (32px); 2xl = cards, xl = section headers, full = pills/avatars */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-4xl: 32px;
+  --radius-full: 9999px;
+}
