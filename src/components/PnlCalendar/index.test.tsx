@@ -41,16 +41,15 @@ describe('PnlCalendar', () => {
     expect(screen.getByText(hasText(`Loss days ${lossCount} /`))).toBeInTheDocument()
   })
 
-  it('renders no-data cells for days with null avgUsdPrice', () => {
+  it('still shows a numbered $0 cell for days with null avgUsdPrice', () => {
     render(<PnlCalendar days={demoPnlDays} mainCurrency="SOL" />)
     fireEvent.click(screen.getByText('Calendar'))
 
     const dialog = screen.getByRole('dialog')
     // Default displayed month is 2026-09 (most recent day in the fixture).
-    // Sept 2 (i=32) has avgUsdPrice: null -> no-data cell, so its
-    // day-number label must not be rendered.
-    expect(within(dialog).queryByText('2')).not.toBeInTheDocument()
-    // A day with data, e.g. day 1, should render its number.
+    // Sept 2 (i=32) has avgUsdPrice: null -> no-data cell, but per the real
+    // Jupiter calendar every day of the month still gets a numbered cell.
+    expect(within(dialog).getByText('2')).toBeInTheDocument()
     expect(within(dialog).getByText('1')).toBeInTheDocument()
   })
 

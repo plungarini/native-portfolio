@@ -75,20 +75,24 @@ export function PnlCalendar({ days, mainCurrency }: PnlCalendarProps) {
   const cells = useMemo(() => {
     const blanks = leadingBlankCount(viewYear, viewMonth)
     const total = daysInMonth(viewYear, viewMonth)
-    const result: (PnlCalendarDay | null)[] = Array.from({ length: blanks }, () => null)
+    const result: ({ day: number; data: PnlCalendarDay | null } | null)[] = Array.from(
+      { length: blanks },
+      () => null,
+    )
     for (let d = 1; d <= total; d++) {
       const key = `${monthKey(viewYear, viewMonth)}-${String(d).padStart(2, '0')}`
       const day = byDate.get(key)
-      result.push(day && day.avgUsdPrice !== null ? day : null)
+      result.push({ day: d, data: day && day.avgUsdPrice !== null ? day : null })
     }
     return result
   }, [viewYear, viewMonth, byDate])
 
   const summary = useMemo(() => {
-    const profitDays = cells.filter((c) => c !== null && c.pnlUsd > 0)
-    const lossDays = cells.filter((c) => c !== null && c.pnlUsd < 0)
-    const profitValue = profitDays.reduce((sum, c) => sum + (c?.pnlUsd ?? 0), 0)
-    const lossValue = lossDays.reduce((sum, c) => sum + (c?.pnlUsd ?? 0), 0)
+    const data = cells.map((c) => c?.data ?? null).filter((d): d is PnlCalendarDay => d !== null)
+    const profitDays = data.filter((d) => d.pnlUsd > 0)
+    const lossDays = data.filter((d) => d.pnlUsd < 0)
+    const profitValue = profitDays.reduce((sum, d) => sum + d.pnlUsd, 0)
+    const lossValue = lossDays.reduce((sum, d) => sum + d.pnlUsd, 0)
     const total = profitDays.length + lossDays.length
     return {
       profitCount: profitDays.length,
@@ -129,7 +133,7 @@ export function PnlCalendar({ days, mainCurrency }: PnlCalendarProps) {
         Calendar
       </button>
 
-      <Modal open={open} onClose={() => setOpen(false)}>
+      <Modal open={open} onClose={() => setOpen(false)} title="PnL Calendar">
         <div className="mb-4 flex items-center justify-between">
           <button type="button" onClick={goToPrevMonth} aria-label="Previous month" className="text-muted-foreground hover:text-foreground">
             <CaretLeft weight="bold" size={18} />
@@ -167,21 +171,22 @@ export function PnlCalendar({ days, mainCurrency }: PnlCalendarProps) {
             if (cell === null) {
               return <div key={i} className="aspect-square rounded-md bg-transparent" />
             }
-            const { day } = parseDateKey(cell.date)
+            const { day, data } = cell
+            const pnlUsd = data?.pnlUsd ?? 0
             return (
               <div
-                key={cell.date}
-                className={`relative aspect-square rounded-md p-1 ${heatmapClasses(cell.pnlUsd)}`}
+                key={day}
+                className={`relative aspect-square rounded-md p-1 ${heatmapClasses(pnlUsd)}`}
               >
                 <span className="absolute left-1 top-1 text-[10px] text-foreground/50">{day}</span>
                 <div className="flex h-full flex-col items-center justify-center">
                   <span
-                    className={`text-sm font-medium ${cell.pnlUsd > 0 ? 'text-success' : cell.pnlUsd < 0 ? 'text-destructive' : 'text-foreground'}`}
+                    className={`text-sm font-medium ${pnlUsd > 0 ? 'text-success' : pnlUsd < 0 ? 'text-destructive' : 'text-foreground'}`}
                   >
-                    {formatSignedMainCurrency(cell.pnlMainCurrency, mainCurrency)}
+                    {data ? formatSignedMainCurrency(data.pnlMainCurrency, mainCurrency) : formatSignedMainCurrency(0, mainCurrency)}
                   </span>
                   <span className="text-[10px] text-foreground-faint">
-                    {formatUsd(cell.avgUsdPrice)}
+                    {data ? formatUsd(data.avgUsdPrice) : formatUsd(0)}
                   </span>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
+import { X } from '@phosphor-icons/react'
 
 interface ModalProps {
   open: boolean
@@ -32,11 +33,19 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-card p-5 outline-none max-sm:mx-4"
+        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-card p-5 outline-none max-sm:mx-4"
         onClick={(event) => event.stopPropagation()}
       >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
+        >
+          <X weight="bold" className="size-4" />
+        </button>
         {title !== undefined && (
-          <h2 className="mb-4 text-base font-medium text-foreground">{title}</h2>
+          <h2 className="mb-4 pr-6 text-base font-medium text-foreground">{title}</h2>
         )}
         {children}
       </div>
