@@ -129,7 +129,7 @@ export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
                   <TableHead>Received</TableHead>
                   <TableHead>Sent</TableHead>
                   <TableHead>Tags</TableHead>
-                  <TableHead className="w-16">Tx</TableHead>
+                  <TableHead className="w-24">Tx</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -159,7 +159,7 @@ export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
                       </TableCell>
                       {/* Tags column kept for layout parity — no tag data (Failed/Spam) in the model yet */}
                       <TableCell />
-                      <TableCell className="w-16 text-sm text-muted-foreground">
+                      <TableCell className="w-24 whitespace-nowrap text-sm text-muted-foreground">
                         {shortenTxHash(row.txHash)}
                       </TableCell>
                     </TableRow>
