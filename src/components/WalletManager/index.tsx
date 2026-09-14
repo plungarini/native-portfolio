@@ -68,7 +68,7 @@ export function WalletManager({ wallets, onAddWallet, onRemoveWallet, onRelabelW
         aria-expanded={open}
       >
         <span className="h-6 w-6 rounded-full bg-border" aria-hidden="true" />
-        <Pill variant="default">{wallets.length} wallets</Pill>
+        <Pill variant="default">{wallets.length} wallet{wallets.length === 1 ? '' : 's'}</Pill>
         <CaretDown weight="bold" className="size-3.5 text-muted-foreground" />
       </button>
 
@@ -88,6 +88,7 @@ export function WalletManager({ wallets, onAddWallet, onRemoveWallet, onRelabelW
                     checked={includedIds.has(id)}
                     onChange={() => toggleIncluded(id)}
                     aria-label={`Include ${wallet.label ?? shortenAddress(wallet.address)}`}
+                    className="size-4 shrink-0 rounded border-border bg-input accent-accent"
                   />
                   <span className="h-6 w-6 shrink-0 rounded-full bg-border" aria-hidden="true" />
                   <div className="min-w-0 flex-1">
@@ -126,7 +127,7 @@ export function WalletManager({ wallets, onAddWallet, onRemoveWallet, onRelabelW
                       type="button"
                       onClick={() => startRename(id, wallet.label ?? '')}
                       aria-label={`Rename ${shortenAddress(wallet.address)}`}
-                      className="text-muted-foreground hover:text-foreground"
+                      className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
                       <PencilSimple weight="bold" className="size-4" />
                     </button>
@@ -135,7 +136,7 @@ export function WalletManager({ wallets, onAddWallet, onRemoveWallet, onRelabelW
                     type="button"
                     onClick={() => onRemoveWallet(wallet.chain, wallet.address)}
                     aria-label={`Remove ${shortenAddress(wallet.address)}`}
-                    className="text-muted-foreground hover:text-destructive"
+                    className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   >
                     <Trash weight="bold" className="size-4" />
                   </button>
