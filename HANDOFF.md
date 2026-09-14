@@ -1,25 +1,23 @@
 # Handoff: native-portfolio — spot-only Solana/BSC portfolio tracker
 
-## Status: STOPPED — read this before touching anything
+## Status: PHASE 3 SHIPPED — CI/Deploy green on master as of commit `f76443d`
 
 ## 1. Context
-Static, backend-less crypto portfolio tracker (Vite+React+TS, GitHub Pages via Actions, public repo `plungarini/native-portfolio`, live at https://plungarini.github.io/native-portfolio/). Full spec: `ARCHITECTURE.md` at repo root. This handoff is specifically about finishing and shipping **Phase 3: data layer** (§9).
+Static, backend-less crypto portfolio tracker (Vite+React+TS, GitHub Pages via Actions, public repo `plungarini/native-portfolio`, live at https://plungarini.github.io/native-portfolio/). Full spec: `ARCHITECTURE.md` at repo root. This handoff covers **Phase 3: data layer** (§9), now complete and pushed.
 
-## 2. Goal
-Commit and push the already-written, already-verified Phase 3 code (Solana/BSC RPC clients, price clients, FIFO PnL engine, react-query hooks), confirm CI green, then stop — do not start Phase 4 without the user's go-ahead.
+## 2. Goal (achieved)
+Phase 3 code (Solana/BSC RPC clients, price clients, FIFO PnL engine, react-query hooks) is committed, pushed to `master`, and both CI and Deploy workflows are green. **Do not start Phase 4 (UI components) without the user's explicit go-ahead** — that's the only reason this doc still exists.
 
-## 3. In progress right now
-All verification is done and everything is green. **Nothing is committed yet** — this was the very last step, interrupted mid-flow:
-- `npm test`/`lint`/`typecheck`/`build` all pass (83/83 tests).
-- Real-network smoke test (no mocks) against live Solana + BSC RPC completed and passed for every function.
+## 3. What shipped
+- Commit `6f664b8`: Phase 3 data layer itself.
+- Commit `f76443d`: CI fix (Test step needed a placeholder `VITE_HELIUS_API_KEY` env var; see §5).
+- `npm test`/`lint`/`typecheck`/`build` all pass locally (83/83 tests) and in CI.
+- Real-network smoke test (no mocks) against live Solana + BSC RPC passed for every function.
 - Secrets scan and dependency-freshness spot-check done, clean.
-- The only remaining actions: `git add`/commit/push (default branch `master`, not `main`), then `gh run list -R plungarini/native-portfolio` to confirm CI is green.
+- `gh run list -R plungarini/native-portfolio` confirmed both CI and Deploy `success` on the final push.
 
 ## 4. Remaining steps
-- Re-verify `git status`/`git log` yourself (see §6).
-- `git add` the modified/untracked Phase 3 files + this HANDOFF.md, commit with a real message, push to `master`.
-- Confirm CI is green: `gh run list -R plungarini/native-portfolio`.
-- Stop after that. Do not start Phase 4 (UI components) without the user's explicit go-ahead.
+None for Phase 3. If picking this up again: confirm the state in §6 hasn't drifted, then wait for the user to greenlight Phase 4 (UI components, per ARCHITECTURE.md §9) before starting it.
 
 ## 5. What went wrong / what I learned
 - **The original "keyless" Solana RPC plan in ARCHITECTURE.md §3.1 doesn't actually work.** The real-network smoke test (which fixture tests never would have caught) found `getTokenAccountsByOwner` (SPL/Token-2022 balance enumeration) returns HTTP 403 on both configured hosts — `solana-rpc.publicnode.com` ("Indexed requests require a personal token") and `rpc.ankr.com/solana` (premium-only). Native SOL balance, tx history, and tx parsing all worked fine unauthenticated; only the *indexed* balance lookup was blocked.
