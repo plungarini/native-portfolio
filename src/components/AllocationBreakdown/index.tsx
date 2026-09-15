@@ -1,5 +1,6 @@
 // Allocation breakdown chip legend + stacked bar — Phase 4, per ARCHITECTURE.md §6.
 import type { Holding } from '../../hooks/useHoldings'
+import { TokenIcon } from '../ui/TokenIcon'
 
 const PALETTE = ['#c7f284', '#35d399', '#7dd3fc', '#fbbf24', '#fb7185', '#a78bfa', '#f472b6', '#67e8f9']
 
@@ -30,9 +31,11 @@ export function AllocationBreakdown({ holdings }: AllocationBreakdownProps) {
               className="flex max-w-[220px] items-center gap-1.5 rounded-full bg-muted px-2 py-1"
             >
               <span
-                className="h-[28px] w-[28px] shrink-0 rounded-full"
-                style={{ backgroundColor: color, boxShadow: `0 0 0 2px ${color}` }}
-              />
+                className="shrink-0 rounded-full"
+                style={{ boxShadow: `0 0 0 2px ${color}` }}
+              >
+                <TokenIcon symbol={holding.symbol} iconUrl={holding.iconUrl} size={28} />
+              </span>
               <span className="min-w-0 truncate text-xs font-medium text-foreground">{holding.symbol}</span>
               <span className="shrink-0 text-xs text-muted-foreground">
                 {pct !== null ? `${pct.toFixed(1)}%` : 'price unavailable'}
