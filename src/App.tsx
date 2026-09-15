@@ -8,8 +8,7 @@ import { ActivityTable } from './components/ActivityTable'
 import { PnlCalendar } from './components/PnlCalendar'
 import { NetWorthCard } from './components/NetWorthCard'
 import { SpotPnlCard } from './components/SpotPnlCard'
-import { SummaryChips } from './components/SummaryChips'
-import type { SummaryChip } from './components/SummaryChips'
+import { TransferSummaryCard } from './components/TransferSummaryCard'
 import { CollapsibleSection } from './components/ui/CollapsibleSection'
 import { Skeleton } from './components/ui/Skeleton'
 import { Badge } from './components/ui/Badge'
@@ -19,7 +18,6 @@ import { useActivity } from './hooks/useActivity'
 import { usePnlCalendar } from './hooks/usePnlCalendar'
 import { usePerTokenPnl } from './hooks/usePerTokenPnl'
 import { SUPPORTED_CURRENCIES } from './config/currencies'
-import { formatUsd } from './lib/format/currency'
 import type { Holding } from './hooks/useHoldings'
 import type { PnlCalendarDay } from './hooks/usePnlCalendar'
 
@@ -29,8 +27,6 @@ const TABS = [
 ]
 
 const CURRENCY_OPTIONS = SUPPORTED_CURRENCIES.map((c) => c.symbol)
-
-const CHAIN_LABELS: Record<string, string> = { solana: 'Solana', bsc: 'BSC' }
 
 function StaleBadge() {
   return <Badge variant="muted">stale</Badge>
@@ -111,33 +107,6 @@ function App() {
     return { usd, main, changeUsd, changePercent }
   }, [holdings.holdings])
 
-  const chips = useMemo<SummaryChip[]>(() => {
-    const rows = holdings.holdings
-    if (rows.length === 0) return []
-
-    const byChain = new Map<string, number>()
-    for (const holding of rows) {
-      if (holding.usdValue === null) continue
-      byChain.set(holding.chain, (byChain.get(holding.chain) ?? 0) + holding.usdValue)
-    }
-
-    const result: SummaryChip[] = [
-      {
-        key: 'holdings',
-        label: 'Holdings',
-        value: totals.usd === null ? '—' : formatUsd(totals.usd),
-      },
-    ]
-    for (const [chain, value] of byChain) {
-      result.push({
-        key: chain,
-        label: CHAIN_LABELS[chain] ?? chain,
-        value: formatUsd(value),
-      })
-    }
-    return result
-  }, [holdings.holdings, totals.usd])
-
   const series = useMemo(() => cumulativePnlSeries(pnlCalendar.days), [pnlCalendar.days])
 
   return (
@@ -197,7 +166,18 @@ function App() {
               />
             </div>
 
-            <SummaryChips chips={chips} />
+            <div className="grid grid-cols-2 gap-4">
+              <TransferSummaryCard
+                transfers={activity.transfers}
+                direction="deposit"
+                mainCurrency={mainCurrency}
+              />
+              <TransferSummaryCard
+                transfers={activity.transfers}
+                direction="withdrawal"
+                mainCurrency={mainCurrency}
+              />
+            </div>
 
             {holdings.isLoading ? (
               <Skeleton className="h-64 w-full" />

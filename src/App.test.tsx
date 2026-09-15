@@ -34,10 +34,12 @@ vi.mock('./hooks/useHoldings', () => ({
 vi.mock('./hooks/useActivity', () => ({
   useActivity: () => ({
     rows: demoActivity,
+    transfers: [],
     mainCurrency: 'SOL',
     isLoading: false,
     isFetching: false,
     isStale: false,
+    isPartial: false,
     error: null,
   }),
 }))
