@@ -35,6 +35,7 @@ import {
 } from '../lib/chains/bsc/bscRpcClient'
 import { bscKnownTokens } from '../config/chains'
 import { getCurrentPricesJupiter } from '../lib/prices/jupiterPriceV3'
+import { getTokenMetadata } from '../lib/tokens/jupiterTokenMetadata'
 import { getCurrentPrice as getDefillamaCurrentPrice } from '../lib/prices/defillama'
 import { getSnapshotPrice } from '../lib/prices/snapshotFallback'
 import { FIXED_UNIT_CURRENCIES, getCurrencyConfig } from '../config/currencies'
@@ -53,6 +54,14 @@ export interface Holding {
   /** Mint address (Solana) / contract address (BSC), or the native sentinel. */
   tokenId: string
   symbol: string
+  /** Full token name when metadata resolved it, else the symbol. */
+  name: string
+  /** Logo URL from Jupiter's token metadata, or `null` to render a fallback. */
+  iconUrl: string | null
+  /** Jupiter's verification flag — drives the check badge. */
+  isVerified: boolean
+  /** 24h price change percentage, or `null` when unknown. */
+  priceChange24h: number | null
   amountToken: number
   /** `null` when no price source had this token — render as "price unavailable". */
   currentUsdPrice: number | null
@@ -301,14 +310,22 @@ async function fetchHoldings(
   } = await collectBalances(wallets)
   const aggregated = Array.from(balances.values())
 
-  const {
-    pricesByKey,
-    mainCurrencyPrice,
-    hadErrors: priceErrors,
-  } = await resolvePrices(aggregated, mainCurrency)
+  const [
+    { pricesByKey, mainCurrencyPrice, hadErrors: priceErrors },
+    metadataByMint,
+  ] = await Promise.all([
+    resolvePrices(aggregated, mainCurrency),
+    getTokenMetadata(
+      aggregated
+        .filter((h) => h.chain === 'solana')
+        .map((h) => (h.tokenId === NATIVE_SOL_MINT ? WRAPPED_SOL_MINT : h.tokenId)),
+    ),
+  ])
 
   const holdings: Holding[] = aggregated.map((h) => {
     const key = holdingKey(h.chain, h.tokenId)
+    const metadata =
+      metadataByMint[h.tokenId === NATIVE_SOL_MINT ? WRAPPED_SOL_MINT : h.tokenId]
     const currentUsdPrice = pricesByKey.get(key) ?? null
     const usdValue =
       currentUsdPrice !== null ? h.amountToken * currentUsdPrice : null
@@ -316,11 +333,18 @@ async function fetchHoldings(
       usdValue !== null && mainCurrencyPrice !== null && mainCurrencyPrice !== 0
         ? usdValue / mainCurrencyPrice
         : null
+    // Native SOL keeps its own symbol — metadata resolves wSOL as "SOL" anyway,
+    // but the balance-side symbol is authoritative for native units.
+    const symbol = metadata?.symbol ?? h.symbol
     return {
       key,
       chain: h.chain,
       tokenId: h.tokenId,
-      symbol: h.symbol,
+      symbol,
+      name: metadata?.name ?? symbol,
+      iconUrl: metadata?.iconUrl ?? null,
+      isVerified: metadata?.isVerified ?? false,
+      priceChange24h: metadata?.priceChange24h ?? null,
       amountToken: h.amountToken,
       currentUsdPrice,
       usdValue,
