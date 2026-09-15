@@ -77,7 +77,7 @@ const SIGNATURES: SignatureInfo[] = [
 
 vi.mock('../lib/chains/solana/solanaRpcClient', () => ({
   getSignatures: vi.fn(),
-  getParsedTransaction: vi.fn(),
+  getParsedTransactionsBatch: vi.fn(),
 }))
 vi.mock('../lib/chains/bsc/bscRpcClient', () => ({
   rpcRequest: vi.fn(),
@@ -88,9 +88,12 @@ vi.mock('../lib/chains/bsc/bscRpcClient', () => ({
 vi.mock('../lib/prices/historicalPriceCache', () => ({
   getCachedHistoricalPrice: vi.fn(),
 }))
+vi.mock('../lib/tokens/jupiterTokenMetadata', () => ({
+  getTokenMetadata: vi.fn().mockResolvedValue({}),
+}))
 
 import {
-  getParsedTransaction,
+  getParsedTransactionsBatch,
   getSignatures,
 } from '../lib/chains/solana/solanaRpcClient'
 import { getCachedHistoricalPrice } from '../lib/prices/historicalPriceCache'
@@ -117,7 +120,7 @@ beforeEach(() => {
 describe('useActivity', () => {
   it('classifies a single historical swap and prices each leg at the tx timestamp', async () => {
     vi.mocked(getSignatures).mockResolvedValue(SIGNATURES)
-    vi.mocked(getParsedTransaction).mockResolvedValue(SWAP_TX)
+    vi.mocked(getParsedTransactionsBatch).mockResolvedValue([SWAP_TX])
     vi.mocked(getCachedHistoricalPrice).mockImplementation(
       async (coinId: string) => {
         if (coinId === `solana:${USDC_MINT}`) return 1

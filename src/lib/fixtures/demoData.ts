@@ -109,8 +109,8 @@ export const demoActivity: ActivityRow[] = [
     txHash: '4U5tA539MP7km5RZT61LmBy4o2aCrgDxnEWHmRAuTvFtPdHveNBMunWmsTS9iztBQq5hJAVcrq3nhCJF5nXR1CTX',
     timestamp: 1_789_400_000,
     legs: [
-      { direction: 'out', chain: 'solana', tokenId: 'So11111111111111111111111111111111111111112', amount: 2, priceUsdAtTx: 172.1, valueUsd: 344.2, valueMainCurrency: 2 },
-      { direction: 'in', chain: 'solana', tokenId: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN', amount: 555, priceUsdAtTx: 0.62, valueUsd: 344.1, valueMainCurrency: 1.9994 },
+      { direction: 'out', chain: 'solana', tokenId: 'So11111111111111111111111111111111111111112', amount: 2, symbol: 'SOL', name: 'Solana', iconUrl: null, priceUsdAtTx: 172.1, valueUsd: 344.2, valueMainCurrency: 2 },
+      { direction: 'in', chain: 'solana', tokenId: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN', amount: 555, symbol: 'JUP', name: 'Jupiter', iconUrl: null, priceUsdAtTx: 0.62, valueUsd: 344.1, valueMainCurrency: 1.9994 },
     ],
   },
   {
@@ -119,8 +119,8 @@ export const demoActivity: ActivityRow[] = [
     txHash: '0x2a632f8a12d8b7dcfbe40ae33ea25c3725b212c877243518e3fc2f4fb16eb316',
     timestamp: 1_789_400_000 - DAY,
     legs: [
-      { direction: 'out', chain: 'bsc', tokenId: '0x55d398326f99059ff775485246999027b3197955', amount: 500, priceUsdAtTx: 1.0, valueUsd: 500, valueMainCurrency: 0.8172 },
-      { direction: 'in', chain: 'bsc', tokenId: 'native:BNB', amount: 0.817, priceUsdAtTx: 611.0, valueUsd: 499.2, valueMainCurrency: 0.8172 },
+      { direction: 'out', chain: 'bsc', tokenId: '0x55d398326f99059ff775485246999027b3197955', amount: 500, symbol: 'USDT', name: 'Tether USD', iconUrl: null, priceUsdAtTx: 1.0, valueUsd: 500, valueMainCurrency: 0.8172 },
+      { direction: 'in', chain: 'bsc', tokenId: 'native:BNB', amount: 0.817, symbol: 'BNB', name: 'BNB', iconUrl: null, priceUsdAtTx: 611.0, valueUsd: 499.2, valueMainCurrency: 0.8172 },
     ],
   },
   {
@@ -129,8 +129,8 @@ export const demoActivity: ActivityRow[] = [
     txHash: '3xQqNa9v6wKp2rT8mYbHcVdE1sFgLj4nZoRuTiWpXcAeBqYhKfDsGmNpVtRcJhWzXn5uEbLoQyFvMnRsTdWkPjGz',
     timestamp: 1_789_400_000 - 2 * DAY,
     legs: [
-      { direction: 'out', chain: 'solana', tokenId: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', amount: 300, priceUsdAtTx: 1.0, valueUsd: 300, valueMainCurrency: 1.7442 },
-      { direction: 'in', chain: 'solana', tokenId: 'So11111111111111111111111111111111111111112', amount: 1.744, priceUsdAtTx: 172.0, valueUsd: 300, valueMainCurrency: 1.744 },
+      { direction: 'out', chain: 'solana', tokenId: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', amount: 300, symbol: 'USDC', name: 'USD Coin', iconUrl: null, priceUsdAtTx: 1.0, valueUsd: 300, valueMainCurrency: 1.7442 },
+      { direction: 'in', chain: 'solana', tokenId: 'So11111111111111111111111111111111111111112', amount: 1.744, symbol: 'SOL', name: 'Solana', iconUrl: null, priceUsdAtTx: 172.0, valueUsd: 300, valueMainCurrency: 1.744 },
     ],
   },
 ]
