@@ -17,4 +17,15 @@ describe('Badge', () => {
     render(<Badge variant="destructive">Spam</Badge>)
     expect(screen.getByText('Spam')).toHaveClass('bg-destructive/10', 'text-destructive')
   })
+
+  it('matches the pill sizing and transitions smoothly between variants', () => {
+    render(<Badge>Pending</Badge>)
+    expect(screen.getByText('Pending')).toHaveClass(
+      'h-6',
+      'rounded-full',
+      'font-medium',
+      'transition-colors',
+      'duration-150',
+    )
+  })
 })

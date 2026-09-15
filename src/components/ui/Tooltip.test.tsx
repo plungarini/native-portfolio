@@ -34,4 +34,22 @@ describe('Tooltip', () => {
     fireEvent.blur(trigger)
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
   })
+
+  it('fades and rises in via transition classes instead of appearing instantly', () => {
+    const { getByRole, container } = render(
+      <Tooltip content="Hi">
+        <button>fade trigger</button>
+      </Tooltip>,
+    )
+    const trigger = getByRole('button', { name: 'fade trigger' })
+    const tooltip = container.querySelector('[role="tooltip"]') as HTMLElement
+    expect(tooltip).toHaveClass('transition-[opacity,transform]', 'duration-150', 'opacity-0', 'translate-y-1')
+
+    fireEvent.mouseEnter(trigger)
+    expect(tooltip).toHaveClass('opacity-100', 'translate-y-0')
+    expect(tooltip).not.toHaveClass('opacity-0')
+
+    fireEvent.mouseLeave(trigger)
+    expect(tooltip).toHaveClass('opacity-0', 'translate-y-1')
+  })
 })

@@ -15,7 +15,7 @@ interface BadgeProps extends ComponentPropsWithoutRef<'span'> {
 
 export function Badge({ variant = 'muted', className, ...props }: BadgeProps) {
   const classes = [
-    'inline-flex items-center rounded-full px-2 py-0.5 text-xs',
+    'inline-flex h-6 items-center rounded-full px-2 py-0.5 text-xs font-medium transition-colors duration-150',
     variantClasses[variant],
     className,
   ]
