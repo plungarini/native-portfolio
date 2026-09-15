@@ -163,9 +163,7 @@ export function PnlCalendar({
           <button type="button" onClick={goToPrevMonth} aria-label="Previous month" className="text-muted-foreground hover:text-foreground">
             <CaretLeft weight="bold" size={18} />
           </button>
-          <button type="button" className="text-sm font-medium text-foreground">
-            {monthLabel}
-          </button>
+          <span className="text-sm font-medium text-foreground">{monthLabel}</span>
           <button type="button" onClick={goToNextMonth} aria-label="Next month" className="text-muted-foreground hover:text-foreground">
             <CaretRight weight="bold" size={18} />
           </button>
