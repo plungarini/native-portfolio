@@ -20,9 +20,11 @@ export function CurrencySwitcher({ value, onChange, options }: CurrencySwitcherP
             type="button"
             aria-pressed={active}
             onClick={() => onChange(symbol)}
-            className="rounded-full"
+            className="rounded-full transition-transform duration-150 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-1 focus-visible:ring-offset-input"
           >
-            <Pill variant={active ? 'accent' : 'muted'}>{symbol}</Pill>
+            <Pill variant={active ? 'accent' : 'muted'} className="transition-colors duration-150 ease-out">
+              {symbol}
+            </Pill>
           </button>
         )
       })}
