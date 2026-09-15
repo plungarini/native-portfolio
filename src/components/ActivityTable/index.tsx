@@ -1,6 +1,3 @@
-// Activity feed table — implemented in Phase 4, per ARCHITECTURE.md §6.
-// Wired against static fixtures only (Phase 5 hooks up useActivity for real).
-import { useState } from 'react'
 import {
   ArrowClockwise,
   DownloadSimple,
@@ -24,6 +21,8 @@ import { formatAmount } from '../../lib/format/number'
 interface ActivityTableProps {
   rows: ActivityRow[]
   mainCurrency: string
+  isFetching?: boolean
+  onRefresh?: () => void
 }
 
 function utcDayKey(timestamp: number): string {
@@ -76,11 +75,44 @@ function groupByUtcDay(rows: ActivityRow[]): [string, ActivityRow[]][] {
   return Array.from(byDay.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1))
 }
 
-export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
-  // Inert per the real data model — no failed/spam flags exist yet to filter on.
-  const [hideFailed, setHideFailed] = useState(false)
-  const [hideSpam, setHideSpam] = useState(false)
+function csvCell(value: string): string {
+  return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
+}
 
+function legsToCsvField(legs: ActivityLegRow[], mainCurrency: string): string {
+  return legs.map((leg) => formatLeg(leg, mainCurrency)).join('; ')
+}
+
+function activityToCsv(rows: ActivityRow[], mainCurrency: string): string {
+  const header = ['Date', 'Time', 'Received', 'Sent', 'Tx']
+  const lines = rows.map((row) => {
+    const received = row.legs.filter((leg) => leg.direction === 'in')
+    const sent = row.legs.filter((leg) => leg.direction === 'out')
+    return [
+      utcDayKey(row.timestamp),
+      formatTime(row.timestamp),
+      legsToCsvField(received, mainCurrency),
+      legsToCsvField(sent, mainCurrency),
+      row.txHash,
+    ]
+      .map(csvCell)
+      .join(',')
+  })
+  return [header.join(','), ...lines].join('\n')
+}
+
+function downloadActivityCsv(rows: ActivityRow[], mainCurrency: string): void {
+  const csv = activityToCsv(rows, mainCurrency)
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `activity-${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+export function ActivityTable({ rows, mainCurrency, isFetching = false, onRefresh }: ActivityTableProps) {
   const days = groupByUtcDay(rows)
 
   return (
@@ -88,25 +120,10 @@ export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          aria-pressed={hideFailed}
-          onClick={() => setHideFailed((v) => !v)}
-          className="rounded-full bg-border/70 px-2.5 py-1 text-xs text-foreground-secondary"
-        >
-          Hide failed
-        </button>
-        <button
-          type="button"
-          aria-pressed={hideSpam}
-          onClick={() => setHideSpam((v) => !v)}
-          className="rounded-full bg-border/70 px-2.5 py-1 text-xs text-foreground-secondary"
-        >
-          Hide spam
-        </button>
-        {/* No CSV-exportable data yet — button has no destination */}
-        <button
-          type="button"
           aria-label="Export CSV"
-          className="ml-auto flex items-center gap-1 rounded-full bg-border/70 px-2.5 py-1 text-xs text-foreground-secondary"
+          disabled={rows.length === 0}
+          onClick={() => downloadActivityCsv(rows, mainCurrency)}
+          className="ml-auto flex items-center gap-1 rounded-full bg-border/70 px-2.5 py-1 text-xs text-foreground-secondary disabled:cursor-not-allowed disabled:opacity-50"
         >
           <DownloadSimple weight="bold" />
           Export
@@ -114,9 +131,11 @@ export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
         <button
           type="button"
           aria-label="Refresh"
-          className="rounded-full bg-border/70 p-1.5 text-foreground-secondary"
+          disabled={isFetching || !onRefresh}
+          onClick={onRefresh}
+          className="rounded-full bg-border/70 p-1.5 text-foreground-secondary disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <ArrowClockwise weight="bold" />
+          <ArrowClockwise weight="bold" className={isFetching ? 'animate-spin' : undefined} />
         </button>
       </div>
 

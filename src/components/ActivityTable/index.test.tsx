@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { ActivityTable } from './index'
 import { demoActivity } from '../../lib/fixtures/demoData'
 import type { ActivityRow } from '../../hooks/useActivity'
@@ -172,5 +172,44 @@ describe('ActivityTable', () => {
     const amountText = formatAmount(amount, { maxFractionDigits: 4 })
     const valueText = formatMainCurrency(valueMainCurrency, 'SOL')
     expect(screen.getByText(`+${amountText} TOK1 (${valueText})`)).toBeInTheDocument()
+  })
+
+  it('disables Export when there are no rows and Refresh when no onRefresh is given', () => {
+    render(<ActivityTable rows={[]} mainCurrency="SOL" />)
+    expect(screen.getByLabelText('Export CSV')).toBeDisabled()
+    expect(screen.getByLabelText('Refresh')).toBeDisabled()
+  })
+
+  it('calls onRefresh when Refresh is clicked, and disables it while fetching', () => {
+    const onRefresh = vi.fn()
+    const { rerender } = render(
+      <ActivityTable rows={demoActivity} mainCurrency="SOL" onRefresh={onRefresh} />,
+    )
+    const refreshButton = screen.getByLabelText('Refresh')
+    expect(refreshButton).not.toBeDisabled()
+    fireEvent.click(refreshButton)
+    expect(onRefresh).toHaveBeenCalledTimes(1)
+
+    rerender(
+      <ActivityTable rows={demoActivity} mainCurrency="SOL" onRefresh={onRefresh} isFetching />,
+    )
+    expect(screen.getByLabelText('Refresh')).toBeDisabled()
+  })
+
+  it('triggers a CSV download when Export is clicked', () => {
+    const createObjectURL = vi.fn(() => 'blob:mock')
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL })
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    render(<ActivityTable rows={demoActivity} mainCurrency="SOL" />)
+    fireEvent.click(screen.getByLabelText('Export CSV'))
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock')
+
+    clickSpy.mockRestore()
+    vi.unstubAllGlobals()
   })
 })

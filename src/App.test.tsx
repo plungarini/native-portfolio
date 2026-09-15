@@ -41,6 +41,7 @@ vi.mock('./hooks/useActivity', () => ({
     isStale: false,
     isPartial: false,
     error: null,
+    refetch: vi.fn(),
   }),
 }))
 

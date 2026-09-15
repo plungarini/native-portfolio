@@ -206,7 +206,12 @@ function App() {
             {activity.isLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : (
-              <ActivityTable rows={activity.rows} mainCurrency={mainCurrency} />
+              <ActivityTable
+                rows={activity.rows}
+                mainCurrency={mainCurrency}
+                isFetching={activity.isFetching}
+                onRefresh={activity.refetch}
+              />
             )}
           </div>
         )}

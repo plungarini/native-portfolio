@@ -119,6 +119,7 @@ export interface UseActivityResult {
   mainCurrency: string
   isLoading: boolean
   isFetching: boolean
+  refetch: () => void
   /** True when at least one wallet/leg lookup failed this round, per §2. */
   isStale: boolean
   /** True when a wallet's history is known to be incomplete — either a
@@ -488,7 +489,7 @@ function walletsCacheKey(wallets: WalletEntry[]): string[] {
 export function useActivity(): UseActivityResult {
   const { wallets, mainCurrency } = useWallets()
 
-  const { data, isLoading, isFetching, isError } = useQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['activity', walletsCacheKey(wallets), mainCurrency],
     queryFn: () => fetchActivity(wallets, mainCurrency),
     placeholderData: keepPreviousData,
@@ -501,6 +502,7 @@ export function useActivity(): UseActivityResult {
     mainCurrency,
     isLoading,
     isFetching,
+    refetch: () => void refetch(),
     isStale: Boolean(data?.hadErrors) || isError,
     isPartial: Boolean(data?.isPartial),
     error: data?.errorMessage ?? null,
