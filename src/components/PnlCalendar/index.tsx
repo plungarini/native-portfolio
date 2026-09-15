@@ -193,16 +193,16 @@ export function PnlCalendar({
             return (
               <div
                 key={day}
-                className={`relative aspect-square rounded-md p-1 ${heatmapClasses(pnlUsd)}`}
+                className={`relative aspect-square overflow-hidden rounded-md p-1 ${heatmapClasses(pnlUsd)}`}
               >
                 <span className="absolute left-1 top-1 text-[10px] text-foreground/50">{day}</span>
-                <div className="flex h-full flex-col items-center justify-center">
+                <div className="flex h-full flex-col items-center justify-center gap-px overflow-hidden px-0.5 pt-2 leading-none">
                   <span
-                    className={`text-sm font-medium ${pnlUsd > 0 ? 'text-success' : pnlUsd < 0 ? 'text-destructive' : 'text-foreground'}`}
+                    className={`w-full truncate text-center text-[11px] font-medium sm:text-xs ${pnlUsd > 0 ? 'text-success' : pnlUsd < 0 ? 'text-destructive' : 'text-foreground'}`}
                   >
                     {data ? formatSignedMainCurrency(data.pnlMainCurrency, mainCurrency) : formatSignedMainCurrency(0, mainCurrency)}
                   </span>
-                  <span className="text-[10px] text-foreground-faint">
+                  <span className="w-full truncate text-center text-[9px] text-foreground-faint">
                     {data ? formatUsd(data.avgUsdPrice) : formatUsd(0)}
                   </span>
                 </div>
