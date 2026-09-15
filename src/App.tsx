@@ -143,8 +143,8 @@ function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-[calc(1112px+4rem)] flex-col gap-6 px-5 pt-5 pb-28 sm:pb-20">
-        <header className="flex flex-row items-center justify-between gap-4">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
+        <header className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <div className="flex shrink-0 items-center gap-4">
             <WalletManager
               wallets={wallets}
               onAddWallet={addWallet}
@@ -152,7 +152,7 @@ function App() {
               onRelabelWallet={relabelWallet}
             />
           </div>
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 max-w-full items-center gap-2">
             {(holdings.isStale || activity.isStale) && <StaleBadge />}
             <CurrencySwitcher
               value={mainCurrency}
