@@ -6,7 +6,8 @@ import type { ReactNode } from 'react'
 import { CalendarBlank, CaretRight } from '@phosphor-icons/react'
 import { Card, CardBody, CardHeader } from '../ui/Card'
 import type { PnlCalendarDay } from '../../hooks/usePnlCalendar'
-import { formatSignedMainCurrency, formatSignedUsd, formatUsd } from '../../lib/format/currency'
+import { formatMainCurrency, formatSignedMainCurrency, formatSignedUsd, formatUsd } from '../../lib/format/currency'
+import { FIXED_UNIT_CURRENCIES } from '../../config/currencies'
 
 interface SpotPnlCardProps {
   days: PnlCalendarDay[]
@@ -127,10 +128,18 @@ export function SpotPnlCard({
   const label = periodLabel ?? MONTH_LABELS[period.month]
   const rangeText = `${MONTH_LABELS[period.month]} 1-${period.lastDayOfMonth}`
 
-  // `formatUsd` already carries the "-" for negatives; only the non-negative
-  // side needs an explicit "+", and zero reads "+$0.00" like Jupiter's.
-  const totalText = `${totalUsd < 0 ? '' : '+'}${formatUsd(totalUsd)}`
   const totalTone = totalUsd >= 0 ? 'text-success' : 'text-destructive'
+  // Main-currency-first per ARCHITECTURE.md §6, except when the main
+  // currency IS USD, where the two are identical and only one should show.
+  // Zero reads with an explicit "+" for the headline figure, like Jupiter's
+  // own "+$0.00" — formatSignedUsd/formatSignedMainCurrency only add "+"
+  // for a strictly-positive value, so force it here for whichever value is
+  // the big one.
+  const isFixedUnitCurrency = FIXED_UNIT_CURRENCIES.has(mainCurrency.toUpperCase())
+  const bigTotalText =
+    isFixedUnitCurrency || totalMainCurrency === null
+      ? `${totalUsd < 0 ? '' : '+'}${formatUsd(totalUsd)}`
+      : `${totalMainCurrency < 0 ? '' : '+'}${formatMainCurrency(totalMainCurrency, mainCurrency)}`
 
   const gridDays = Array.from({ length: period.totalDaysInMonth }, (_, i) => i + 1)
 
@@ -140,19 +149,16 @@ export function SpotPnlCard({
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-medium text-foreground">Spot PnL</span>
           <span className="text-sm text-muted-foreground">{label}</span>
-          <CaretRight className="size-3 text-muted-foreground" weight="bold" aria-hidden="true" />
         </div>
         {action ? <div className="flex items-center">{action}</div> : null}
       </CardHeader>
 
       <CardBody className="gap-4">
         <div className="flex flex-col gap-0.5">
-          <span className={`text-3xl font-semibold ${totalTone}`}>{totalText}</span>
-          {totalMainCurrency !== null ? (
-            <span className="text-xs text-muted-foreground">
-              {formatSignedMainCurrency(totalMainCurrency, mainCurrency)}
-            </span>
-          ) : null}
+          <span className={`text-3xl font-semibold ${totalTone}`}>{bigTotalText}</span>
+          {!isFixedUnitCurrency && totalMainCurrency !== null && (
+            <span className="text-xs text-muted-foreground">{formatSignedUsd(totalUsd)}</span>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -161,7 +167,11 @@ export function SpotPnlCard({
               Best day
             </span>
             <span className="text-sm font-medium text-foreground">
-              {bestDay ? formatSignedUsd(bestDay.pnlUsd) : '—'}
+              {bestDay
+                ? isFixedUnitCurrency || bestDay.pnlMainCurrency === null
+                  ? formatSignedUsd(bestDay.pnlUsd)
+                  : formatSignedMainCurrency(bestDay.pnlMainCurrency, mainCurrency)
+                : '—'}
             </span>
           </div>
           <div className="flex flex-col gap-0.5">

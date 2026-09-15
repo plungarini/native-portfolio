@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { WalletIcon } from '@phosphor-icons/react'
 import { Card, CardBody, CardHeader } from '../ui/Card'
 import { formatMainCurrency, formatSignedUsd, formatUsd, PRICE_UNAVAILABLE } from '../../lib/format/currency'
+import { FIXED_UNIT_CURRENCIES } from '../../config/currencies'
 
 interface NetWorthCardProps {
   totalUsd: number | null
@@ -71,6 +72,15 @@ export function NetWorthCard({
   const changeToneClass = changePositive ? 'text-success' : 'text-destructive'
   const trendToneClass = spark?.rising ? 'text-success' : 'text-destructive'
 
+  // Main-currency-first per ARCHITECTURE.md §6: the selected main currency
+  // leads (big), USD trails (small) — except when the main currency IS USD,
+  // where the two are identical and only one figure should show.
+  const isFixedUnitCurrency = FIXED_UNIT_CURRENCIES.has(mainCurrency.toUpperCase())
+  const bigValue = isFixedUnitCurrency ? totalUsd : mainCurrencyTotal
+  const bigText = isFixedUnitCurrency
+    ? formatUsd(bigValue)
+    : formatMainCurrency(bigValue, mainCurrency)
+
   return (
     <Card>
       <CardHeader>
@@ -110,16 +120,16 @@ export function NetWorthCard({
         <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
           <span
             className={
-              totalUsd === null
+              bigValue === null
                 ? 'text-2xl font-semibold tracking-tight text-muted-foreground'
                 : 'text-4xl font-semibold tracking-tight text-foreground'
             }
           >
-            {formatUsd(totalUsd)}
+            {bigText}
           </span>
-          <span className="text-sm text-muted-foreground">
-            {formatMainCurrency(mainCurrencyTotal, mainCurrency)}
-          </span>
+          {!isFixedUnitCurrency && (
+            <span className="text-sm text-muted-foreground">{formatUsd(totalUsd)}</span>
+          )}
         </div>
 
         {hasChange ? (

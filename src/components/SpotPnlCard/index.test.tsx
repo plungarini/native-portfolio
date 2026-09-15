@@ -27,9 +27,11 @@ describe('SpotPnlCard', () => {
 
     expect(screen.getByText('Spot PnL')).toBeInTheDocument()
     expect(screen.getByText('Sep')).toBeInTheDocument()
-    // -20 + 0 + 120.50 + 10 + 5 = 115.50
-    expect(screen.getByText('+$115.50')).toHaveClass('text-success')
-    expect(screen.getByText('+$120.50')).toBeInTheDocument()
+    // -20 + 0 + 120.50 + 10 + 5 = 115.50 USD -> 1.155 SOL (pnlMainCurrency = pnlUsd/100)
+    expect(screen.getByText('+1.155 SOL')).toHaveClass('text-success')
+    expect(screen.getByText('+$115.50')).toBeInTheDocument()
+    // Best day (Sep 3, 120.50 USD) leads with main-currency too.
+    expect(screen.getByText('+1.205 SOL')).toBeInTheDocument()
     // Sep 5, 4 and 3 are all > 0; Sep 2 is 0 and breaks the streak.
     expect(screen.getByText('3 days')).toBeInTheDocument()
     expect(screen.getByText('Sep 1-5')).toBeInTheDocument()
@@ -40,9 +42,10 @@ describe('SpotPnlCard', () => {
       <SpotPnlCard days={[day('2026-09-01', -50), day('2026-09-02', -10)]} mainCurrency="SOL" />,
     )
 
-    const total = screen.getByText('-$60.00')
+    const total = screen.getByText('-0.6 SOL')
     expect(total).toHaveClass('text-destructive')
     expect(total).not.toHaveClass('text-success')
+    expect(screen.getByText('-$60.00')).toBeInTheDocument()
     expect(screen.getByText('0 days')).toBeInTheDocument()
   })
 
@@ -73,6 +76,20 @@ describe('SpotPnlCard', () => {
 
     expect(screen.getAllByText('+$25.00').length).toBeGreaterThan(0)
     expect(screen.queryByText(/SOL/)).not.toBeInTheDocument()
+  })
+
+  it('leads with the main currency and does not render a fake period-switcher chevron', () => {
+    const { container } = render(<SpotPnlCard days={days} mainCurrency="SOL" />)
+    expect(screen.getByText('+1.155 SOL')).toHaveClass('text-3xl')
+    expect(screen.getByText('+$115.50')).toHaveClass('text-xs')
+    // Only the functional "PnL Calendar" caret should render — no decorative
+    // chevron with no handler next to the period label.
+    expect(container.querySelectorAll('svg').length).toBe(2) // CalendarBlank + PnL Calendar's CaretRight
+  })
+
+  it('renders a single figure with no redundant USD line when mainCurrency is USD', () => {
+    render(<SpotPnlCard days={days} mainCurrency="USD" />)
+    expect(screen.getAllByText('+$115.50')).toHaveLength(1)
   })
 
   it('renders the action slot and calls onOpenCalendar', () => {

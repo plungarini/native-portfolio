@@ -28,6 +28,33 @@ describe('NetWorthCard', () => {
     expect(screen.getByText(/since yesterday/)).toBeInTheDocument()
   })
 
+  it('leads with the main currency (main-currency-first, per ARCHITECTURE.md §6)', () => {
+    render(
+      <NetWorthCard
+        totalUsd={1426.91}
+        mainCurrencyTotal={13.92}
+        mainCurrency="SOL"
+        changeUsd={-0.44}
+        changePercent={-0.03}
+      />,
+    )
+    expect(screen.getByText('13.92 SOL')).toHaveClass('text-4xl')
+    expect(screen.getByText('$1,426.91')).toHaveClass('text-sm')
+  })
+
+  it('renders a single figure with no redundant USD line when mainCurrency is USD', () => {
+    render(
+      <NetWorthCard
+        totalUsd={1000}
+        mainCurrencyTotal={1000}
+        mainCurrency="USD"
+        changeUsd={0}
+        changePercent={0}
+      />,
+    )
+    expect(screen.getAllByText('$1,000.00')).toHaveLength(1)
+  })
+
   it('calls onRangeChange with the clicked range', () => {
     const onRangeChange = vi.fn()
     render(
