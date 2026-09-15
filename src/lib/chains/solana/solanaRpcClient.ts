@@ -73,6 +73,29 @@ function isJsonRpcFailure<T>(body: JsonRpcResponse<T>): body is JsonRpcFailure {
   return 'error' in body
 }
 
+/** No explicit timeout here previously meant a degraded-but-not-instantly-
+ * erroring host (slow response, not a fast 429/5xx) could hang a single
+ * call indefinitely — harmless when only a handful of calls are ever made,
+ * but the full-history backfill can issue well over a hundred sequential
+ * batch requests, so one slow host turns into a multi-minute hang instead
+ * of the round-robin fallback kicking in quickly. */
+const RPC_TIMEOUT_MS = 8_000
+
+async function fetchWithTimeout(url: string, body: unknown): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS)
+  try {
+    return await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 /**
  * POSTs a JSON-RPC request to the first Solana RPC host that answers
  * successfully, starting at `preferredHostIndex` and rotating forward on a
@@ -90,13 +113,9 @@ async function rpcCall<T>(method: string, params: unknown[]): Promise<T> {
 
     let response: Response
     try {
-      response = await fetch(host, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-      })
+      response = await fetchWithTimeout(host, { jsonrpc: '2.0', id: 1, method, params })
     } catch (err) {
-      // Network error (offline, DNS failure, CORS rejection, etc.) — try
+      // Network error (offline, DNS failure, CORS rejection, timeout) — try
       // the next host.
       lastError = err
       continue
@@ -130,6 +149,81 @@ async function rpcCall<T>(method: string, params: unknown[]): Promise<T> {
   throw lastError instanceof Error
     ? lastError
     : new Error(`All Solana RPC hosts failed for ${method}`)
+}
+
+/**
+ * POSTs a single JSON-RPC *batch* request (one HTTP round-trip for many
+ * calls) to the first host that answers, same host-fallback behavior as
+ * `rpcCall`. A per-item application error (or a missing entry in the
+ * response array — some hosts silently drop unsupported batch entries)
+ * resolves that item to `null` rather than failing the whole batch; only a
+ * network/HTTP/429 failure across every host throws. Order of the returned
+ * array matches `calls`, not the order the host responded in.
+ */
+async function rpcBatchCall<T>(
+  calls: Array<{ method: string; params: unknown[] }>,
+): Promise<Array<T | null>> {
+  if (calls.length === 0) return []
+
+  const body = calls.map((call, index) => ({
+    jsonrpc: '2.0' as const,
+    id: index,
+    method: call.method,
+    params: call.params,
+  }))
+
+  let lastError: unknown
+
+  for (let attempt = 0; attempt < SOLANA_RPC_HOSTS.length; attempt++) {
+    const hostIndex = (preferredHostIndex + attempt) % SOLANA_RPC_HOSTS.length
+    const host = SOLANA_RPC_HOSTS[hostIndex]
+
+    let response: Response
+    try {
+      response = await fetchWithTimeout(host, body)
+    } catch (err) {
+      lastError = err
+      continue
+    }
+
+    if (response.status === 429 || (!response.ok && response.status >= 500)) {
+      lastError = new Error(
+        `Solana RPC ${host} returned HTTP ${response.status} for batch request`,
+      )
+      continue
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Solana RPC ${host} returned HTTP ${response.status} for batch request`,
+      )
+    }
+
+    const parsed: unknown = await response.json()
+    if (!Array.isArray(parsed)) {
+      // Some hosts don't support batching at all and echo a single object
+      // (or an error) back — treat as a total failure for this host and
+      // let the caller fall back to per-item calls.
+      lastError = new Error(`Solana RPC ${host} returned a non-batch response`)
+      continue
+    }
+
+    const byId = new Map<number, JsonRpcResponse<T>>()
+    for (const entry of parsed as JsonRpcResponse<T>[]) {
+      if (typeof entry?.id === 'number') byId.set(entry.id, entry)
+    }
+
+    preferredHostIndex = hostIndex
+    return calls.map((_, index) => {
+      const entry = byId.get(index)
+      if (!entry || isJsonRpcFailure(entry)) return null
+      return entry.result
+    })
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('All Solana RPC hosts failed for batch request')
 }
 
 interface GetBalanceResult {
@@ -218,10 +312,11 @@ export interface SignatureInfo {
 export async function getSignatures(
   address: string,
   limit = 20,
+  before?: string,
 ): Promise<SignatureInfo[]> {
   return rpcCall<SignatureInfo[]>('getSignaturesForAddress', [
     address,
-    { limit },
+    before ? { limit, before } : { limit },
   ])
 }
 
@@ -281,4 +376,47 @@ export async function getParsedTransaction(
     signature,
     { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 },
   ])
+}
+
+const BATCH_CHUNK_SIZE = 20
+
+/**
+ * Parsed transactions for many signatures at once, batched ~20 per HTTP
+ * request instead of one round-trip each — the difference between a full
+ * history backfill taking seconds vs. minutes. If a host rejects batching
+ * outright (the whole chunk throws), falls back to `getParsedTransaction`
+ * one at a time for just that chunk so a single unfriendly host degrades
+ * gracefully rather than failing the sync. A signature this host has no
+ * record of (pruned/unconfirmed) resolves to `null`, matching
+ * `getParsedTransaction`'s own contract.
+ */
+export async function getParsedTransactionsBatch(
+  signatures: string[],
+): Promise<Array<ParsedTransactionResult | null>> {
+  const results: Array<ParsedTransactionResult | null> = []
+
+  for (let i = 0; i < signatures.length; i += BATCH_CHUNK_SIZE) {
+    const chunk = signatures.slice(i, i + BATCH_CHUNK_SIZE)
+    try {
+      const chunkResults = await rpcBatchCall<ParsedTransactionResult | null>(
+        chunk.map((signature) => ({
+          method: 'getTransaction',
+          params: [
+            signature,
+            { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 },
+          ],
+        })),
+      )
+      results.push(...chunkResults)
+    } catch {
+      const perSignature = await Promise.all(
+        chunk.map((signature) =>
+          getParsedTransaction(signature).catch(() => null),
+        ),
+      )
+      results.push(...perSignature)
+    }
+  }
+
+  return results
 }
