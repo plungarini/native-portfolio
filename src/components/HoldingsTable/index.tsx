@@ -11,6 +11,7 @@ import {
 } from '../ui/Table'
 import { TableSection } from '../ui/TableSection'
 import { TokenIcon } from '../ui/TokenIcon'
+import { Tooltip } from '../ui/Tooltip'
 import { PRICE_UNAVAILABLE, formatMainCurrency, formatSignedUsd, formatUsd } from '../../lib/format/currency'
 import { formatAmount } from '../../lib/format/number'
 
@@ -76,9 +77,11 @@ export function HoldingsTable({ holdings, mainCurrency, pnlByKey }: HoldingsTabl
                       <div className="flex items-center gap-3">
                         <TokenIcon symbol={holding.symbol} iconUrl={holding.iconUrl} size={28} />
                         <div className="flex min-w-0 items-center gap-1.5">
-                          <span className="min-w-0 truncate text-sm font-medium text-foreground">
-                            {holding.symbol}
-                          </span>
+                          <Tooltip content={holding.name}>
+                            <span className="min-w-0 truncate text-sm font-medium text-foreground">
+                              {holding.symbol}
+                            </span>
+                          </Tooltip>
                           {holding.isVerified && (
                             <SealCheck
                               weight="fill"
