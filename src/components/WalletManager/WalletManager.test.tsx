@@ -5,6 +5,10 @@ import { demoWallets } from '../../lib/fixtures/demoData'
 
 afterEach(cleanup)
 
+// The panel content renders twice (desktop Popover panel + mobile Modal
+// sheet) — jsdom doesn't apply CSS so both are query-visible; tests use
+// getAllBy*/act on the first match, matching Popover's own test file.
+
 describe('WalletManager', () => {
   it('renders the "N wallets" chip with correct count', () => {
     render(
@@ -29,7 +33,7 @@ describe('WalletManager', () => {
     )
     expect(screen.queryByText(demoWallets[0].label as string)).not.toBeInTheDocument()
     fireEvent.click(screen.getByText(`${demoWallets.length} wallets`))
-    expect(screen.getByText(demoWallets[0].label as string)).toBeInTheDocument()
+    expect(screen.getAllByText(demoWallets[0].label as string).length).toBeGreaterThan(0)
   })
 
   it('clicking a wallet remove button calls onRemoveWallet with its chain+address', () => {
@@ -44,7 +48,9 @@ describe('WalletManager', () => {
     )
     fireEvent.click(screen.getByText(`${demoWallets.length} wallets`))
     const wallet = demoWallets[0]
-    fireEvent.click(screen.getByLabelText(`Remove ${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`))
+    fireEvent.click(
+      screen.getAllByLabelText(`Remove ${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`)[0],
+    )
     expect(onRemoveWallet).toHaveBeenCalledWith(wallet.chain, wallet.address)
   })
 
@@ -59,8 +65,8 @@ describe('WalletManager', () => {
       />,
     )
     fireEvent.click(screen.getByText(`${demoWallets.length} wallets`))
-    fireEvent.change(screen.getByLabelText('Wallet address'), { target: { value: 'abc123' } })
-    fireEvent.click(screen.getByText('Add wallet'))
+    fireEvent.change(screen.getAllByLabelText('Wallet address')[0], { target: { value: 'abc123' } })
+    fireEvent.click(screen.getAllByText('Add wallet')[0])
     expect(onAddWallet).toHaveBeenCalledWith({ chain: 'solana', address: 'abc123' })
   })
 
@@ -95,7 +101,7 @@ describe('WalletManager', () => {
     expect(badge).toHaveClass('bg-muted')
   })
 
-  it('popover panel renders using the Card primitive (rounded-2xl border bg-card)', () => {
+  it('desktop popover panel renders using the Card primitive (rounded-2xl border bg-card)', () => {
     render(
       <WalletManager
         wallets={demoWallets}
@@ -105,7 +111,7 @@ describe('WalletManager', () => {
       />,
     )
     fireEvent.click(screen.getByText(`${demoWallets.length} wallets`))
-    const panel = screen.getByLabelText('Close').closest('div.relative.flex.flex-col')
+    const panel = screen.getAllByLabelText('Close')[0].closest('div.relative.flex.flex-col')
     expect(panel).not.toBeNull()
     expect(panel).toHaveClass('rounded-2xl')
     expect(panel).toHaveClass('border-foreground/[0.03]')
@@ -123,8 +129,12 @@ describe('WalletManager', () => {
     )
     fireEvent.click(screen.getByText(`${demoWallets.length} wallets`))
     const wallet = demoWallets[0]
-    const renameButton = screen.getByLabelText(`Rename ${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`)
-    const removeButton = screen.getByLabelText(`Remove ${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`)
+    const renameButton = screen.getAllByLabelText(
+      `Rename ${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`,
+    )[0]
+    const removeButton = screen.getAllByLabelText(
+      `Remove ${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`,
+    )[0]
     expect(renameButton).toHaveClass('transition-colors')
     expect(renameButton).toHaveClass('hover:bg-muted')
     expect(removeButton).toHaveClass('transition-colors')
@@ -144,13 +154,13 @@ describe('WalletManager', () => {
       </div>,
     )
     fireEvent.click(screen.getByText(`${demoWallets.length} wallets`))
-    expect(screen.getByLabelText('Close')).toBeInTheDocument()
+    expect(screen.getAllByLabelText('Close').length).toBeGreaterThan(0)
 
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByLabelText('Close')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByText(`${demoWallets.length} wallets`))
-    expect(screen.getByLabelText('Close')).toBeInTheDocument()
+    expect(screen.getAllByLabelText('Close').length).toBeGreaterThan(0)
 
     fireEvent.pointerDown(screen.getByText('Outside'))
     expect(screen.queryByLabelText('Close')).not.toBeInTheDocument()
