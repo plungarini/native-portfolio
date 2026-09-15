@@ -105,22 +105,6 @@ describe('HoldingsTable', () => {
     expect(noPnlRow.textContent).toContain('—')
   })
 
-  it('links Solana holdings to Jupiter and renders no action for BSC holdings', () => {
-    render(
-      <HoldingsTable
-        holdings={[
-          makeHolding({ key: 'sol', symbol: 'SOL', tokenId: 'mint123', chain: 'solana' }),
-          makeHolding({ key: 'bnb', symbol: 'BNB', chain: 'bsc', tokenId: 'native:BNB' }),
-        ]}
-        mainCurrency="SOL"
-      />,
-    )
-    const links = screen.getAllByRole('link', { name: 'Trade' })
-    expect(links).toHaveLength(1)
-    expect(links[0]).toHaveAttribute('href', 'https://jup.ag/tokens/mint123')
-    expect(links[0]).toHaveAttribute('rel', 'noreferrer noopener')
-  })
-
   it('renders an empty state with no crash when there are no holdings', () => {
     render(<HoldingsTable holdings={[]} mainCurrency="SOL" />)
     expect(screen.getByText(/no holdings yet/i)).toBeInTheDocument()
@@ -160,7 +144,8 @@ describe('HoldingsTable', () => {
       expect(screen.getByText(formatUsd(1))).toBeInTheDocument()
       expect(screen.getByText(balanceText)).toBeInTheDocument()
 
-      fireEvent.click(screen.getByRole('button', { name: 'BNB' }))
+      fireEvent.click(screen.getByRole('button', { name: /SOL/ }))
+      fireEvent.click(screen.getAllByRole('option', { name: /BNB/ })[0])
 
       expect(screen.queryByText(solMainText)).not.toBeInTheDocument()
       expect(screen.getByText(bnbMainText)).toBeInTheDocument()

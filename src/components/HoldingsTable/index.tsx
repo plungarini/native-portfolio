@@ -58,11 +58,10 @@ export function HoldingsTable({ holdings, mainCurrency, pnlByKey }: HoldingsTabl
           <Table className="table-fixed caption-bottom text-sm max-sm:min-w-max">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[260px] px-3">Asset</TableHead>
-                <TableHead className="w-[150px] px-3">Value/Balance</TableHead>
-                <TableHead className="w-[130px] px-3 text-right">Price/24hΔ</TableHead>
-                <TableHead className="w-[140px] px-3 text-right">PnL (all time)</TableHead>
-                <TableHead className="w-[110px] px-3 text-right">Actions</TableHead>
+                <TableHead className="w-[300px] px-3">Asset</TableHead>
+                <TableHead className="w-[170px] px-3">Value/Balance</TableHead>
+                <TableHead className="w-[150px] px-3 text-right">Price/24hΔ</TableHead>
+                <TableHead className="w-[160px] px-3 text-right">PnL (all time)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -134,19 +133,6 @@ export function HoldingsTable({ holdings, mainCurrency, pnlByKey }: HoldingsTabl
                             {formatSignedPercent(pnl.percent)}
                           </div>
                         </div>
-                      )}
-                    </TableCell>
-
-                    <TableCell className="min-w-0 overflow-hidden whitespace-nowrap p-3 py-2.5 text-right align-middle">
-                      {holding.chain === 'solana' && (
-                        <a
-                          href={`https://jup.ag/tokens/${holding.tokenId}`}
-                          target="_blank"
-                          rel="noreferrer noopener"
-                          className="inline-flex items-center rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-border"
-                        >
-                          Trade
-                        </a>
                       )}
                     </TableCell>
                   </TableRow>
