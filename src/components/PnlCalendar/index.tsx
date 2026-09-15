@@ -102,6 +102,14 @@ export function PnlCalendar({
     return result
   }, [viewYear, viewMonth, byDate])
 
+  const daysWithData = useMemo(
+    () =>
+      cells.filter(
+        (c): c is { day: number; data: PnlCalendarDay } => c !== null && c.data !== null,
+      ),
+    [cells],
+  )
+
   const summary = useMemo(() => {
     const data = cells.map((c) => c?.data ?? null).filter((d): d is PnlCalendarDay => d !== null)
     const profitDays = data.filter((d) => d.pnlUsd > 0)
@@ -178,7 +186,11 @@ export function PnlCalendar({
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 text-center text-xs text-foreground-faint">
+        {/* The 7-col grid gets unreadably cramped once each cell has to fit
+            two lines of text at phone width — below `sm:`, fall back to a
+            simple list of only the days that actually have PnL, matching
+            ActivityTable's row language instead of forcing the full grid. */}
+        <div className="hidden grid-cols-7 gap-1 text-center text-xs text-foreground-faint sm:grid">
           {WEEKDAY_LABELS.map((label) => (
             <div key={label} className="pb-1">
               {label}
@@ -209,6 +221,31 @@ export function PnlCalendar({
               </div>
             )
           })}
+        </div>
+
+        <div className="flex flex-col gap-1 sm:hidden">
+          {daysWithData.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">No activity this month</p>
+          ) : (
+            daysWithData.map(({ day, data }) => (
+              <div
+                key={day}
+                className={`flex items-center justify-between rounded-lg px-3 py-2 ${heatmapClasses(data.pnlUsd)}`}
+              >
+                <span className="text-sm text-foreground">
+                  {monthLabel.split(' ')[0]} {day}
+                </span>
+                <div className="flex flex-col items-end">
+                  <span
+                    className={`text-sm font-medium ${data.pnlUsd > 0 ? 'text-success' : data.pnlUsd < 0 ? 'text-destructive' : 'text-foreground'}`}
+                  >
+                    {formatSignedMainCurrency(data.pnlMainCurrency, mainCurrency)}
+                  </span>
+                  <span className="text-xs text-foreground-faint">{formatUsd(data.avgUsdPrice)}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </Modal>
     </>

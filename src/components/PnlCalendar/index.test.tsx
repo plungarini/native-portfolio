@@ -72,7 +72,31 @@ describe('PnlCalendar', () => {
     fireEvent.click(screen.getByText('Calendar'))
 
     // Uses the real format helpers from src/lib/format, not a re-implementation.
-    expect(screen.getByText(formatSignedMainCurrency(pnlMainCurrency, 'SOL'))).toBeInTheDocument()
-    expect(screen.getByText(formatUsd(avgUsdPrice))).toBeInTheDocument()
+    // A day with data renders in both the desktop grid and the mobile
+    // days-with-data list (jsdom doesn't apply CSS, so both are
+    // query-visible — a real browser only shows one per viewport).
+    expect(
+      screen.getAllByText(formatSignedMainCurrency(pnlMainCurrency, 'SOL')).length,
+    ).toBeGreaterThan(0)
+    expect(screen.getAllByText(formatUsd(avgUsdPrice)).length).toBeGreaterThan(0)
+  })
+
+  it('lists only days with data in the mobile fallback view, or an empty state', () => {
+    const day: PnlCalendarDay = {
+      date: '2026-09-05',
+      pnlUsd: 62,
+      pnlMainCurrency: 0.41,
+      avgUsdPrice: 150,
+    }
+    render(<PnlCalendar days={[day]} mainCurrency="SOL" />)
+    fireEvent.click(screen.getByText('Calendar'))
+    // Mobile list renders "<Month> <day>"; the desktop grid renders just "5".
+    expect(screen.getAllByText('September 5').length).toBeGreaterThan(0)
+  })
+
+  it('shows an empty state in the mobile list when the month has no PnL', () => {
+    render(<PnlCalendar days={[]} mainCurrency="SOL" />)
+    fireEvent.click(screen.getByText('Calendar'))
+    expect(screen.getByText('No activity this month')).toBeInTheDocument()
   })
 })
