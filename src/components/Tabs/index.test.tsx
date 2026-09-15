@@ -28,4 +28,18 @@ describe('Tabs', () => {
     fireEvent.click(screen.getByText('Activity'))
     expect(onChange).toHaveBeenCalledWith('activity')
   })
+
+  it('renders the underline indicator only inside the active tab', () => {
+    render(<Tabs tabs={tabs} activeKey="holdings" onChange={vi.fn()} />)
+    const indicator = screen.getByTestId('tab-indicator-holdings')
+    expect(indicator).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Holdings' })).toContainElement(indicator)
+    expect(screen.queryByTestId('tab-indicator-activity')).not.toBeInTheDocument()
+  })
+
+  it('exposes a tablist and renders without crashing when there are no tabs', () => {
+    render(<Tabs tabs={[]} activeKey="" onChange={vi.fn()} />)
+    expect(screen.getByRole('tablist')).toBeInTheDocument()
+    expect(screen.queryAllByRole('tab')).toHaveLength(0)
+  })
 })
