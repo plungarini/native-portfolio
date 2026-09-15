@@ -17,7 +17,7 @@ export function TableSection({ title, badge, children }: TableSectionProps) {
           </span>
         )}
       </header>
-      <div className="px-3 pb-2.5">{children}</div>
+      <div className="p-4">{children}</div>
     </section>
   )
 }
