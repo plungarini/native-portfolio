@@ -16,6 +16,7 @@ import {
 } from '../ui/Table'
 import { TableSection } from '../ui/TableSection'
 import { Pill } from '../ui/Pill'
+import { TokenIcon } from '../ui/TokenIcon'
 import { formatMainCurrency } from '../../lib/format/currency'
 import { formatAmount } from '../../lib/format/number'
 
@@ -48,6 +49,12 @@ function formatTime(timestamp: number): string {
 
 function shortenTxHash(txHash: string): string {
   return txHash.length <= 10 ? txHash : `${txHash.slice(0, 6)}…${txHash.slice(-4)}`
+}
+
+function explorerTxUrl(chain: ActivityRow['chain'], txHash: string): string {
+  return chain === 'solana'
+    ? `https://solscan.io/tx/${txHash}`
+    : `https://bscscan.com/tx/${txHash}`
 }
 
 function formatLeg(leg: ActivityLegRow, mainCurrency: string): string {
@@ -121,52 +128,72 @@ export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
             title={formatDayLabel(dayKey)}
             badge={<Pill>{`${dayRows.length} activities`}</Pill>}
           >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-28">Time</TableHead>
-                  <TableHead>App</TableHead>
-                  <TableHead>Received</TableHead>
-                  <TableHead>Sent</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead className="w-24">Tx</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dayRows.map((row) => {
-                  const received = row.legs.filter((leg) => leg.direction === 'in')
-                  const sent = row.legs.filter((leg) => leg.direction === 'out')
-                  return (
-                    <TableRow key={row.txHash}>
-                      <TableCell className="w-28 text-sm text-muted-foreground">
-                        {formatTime(row.timestamp)}
-                      </TableCell>
-                      {/* No protocol/app name+logo field in ActivityRow yet */}
-                      <TableCell className="text-sm text-muted-foreground">--</TableCell>
-                      <TableCell>
-                        {received.map((leg, i) => (
-                          <div key={i} className="text-sm text-success">
-                            {formatLeg(leg, mainCurrency)}
+            <div className="relative w-full overflow-x-auto overflow-y-hidden overscroll-x-contain">
+              <Table className="table-fixed caption-bottom text-sm max-sm:min-w-max">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-24 p-3">Time</TableHead>
+                    <TableHead className="w-28 p-3">App</TableHead>
+                    <TableHead className="w-[180px] p-3">Received</TableHead>
+                    <TableHead className="w-[180px] p-3">Sent</TableHead>
+                    <TableHead className="w-24 p-3">Tags</TableHead>
+                    <TableHead className="w-24 p-3">Tx</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dayRows.map((row) => {
+                    const received = row.legs.filter((leg) => leg.direction === 'in')
+                    const sent = row.legs.filter((leg) => leg.direction === 'out')
+                    return (
+                      <TableRow
+                        key={row.txHash}
+                        className="hover:bg-muted/30 transition-colors duration-150"
+                      >
+                        <TableCell className="w-24 p-3 py-2.5 align-middle text-sm text-muted-foreground">
+                          {formatTime(row.timestamp)}
+                        </TableCell>
+                        {/* No protocol/app name+logo field in ActivityRow yet */}
+                        <TableCell className="w-28 p-3 py-2.5 align-middle text-sm text-muted-foreground">
+                          --
+                        </TableCell>
+                        <TableCell className="w-[180px] p-3 py-2.5 align-middle">
+                          <div className="flex flex-col gap-1">
+                            {received.map((leg, i) => (
+                              <div key={i} className="flex items-center gap-1.5 text-sm text-success">
+                                <TokenIcon symbol={leg.tokenId} size={16} />
+                                {formatLeg(leg, mainCurrency)}
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </TableCell>
-                      <TableCell>
-                        {sent.map((leg, i) => (
-                          <div key={i} className="text-sm text-destructive">
-                            {formatLeg(leg, mainCurrency)}
+                        </TableCell>
+                        <TableCell className="w-[180px] p-3 py-2.5 align-middle">
+                          <div className="flex flex-col gap-1">
+                            {sent.map((leg, i) => (
+                              <div key={i} className="flex items-center gap-1.5 text-sm text-destructive">
+                                <TokenIcon symbol={leg.tokenId} size={16} />
+                                {formatLeg(leg, mainCurrency)}
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </TableCell>
-                      {/* Tags column kept for layout parity — no tag data (Failed/Spam) in the model yet */}
-                      <TableCell />
-                      <TableCell className="w-24 whitespace-nowrap text-sm text-muted-foreground">
-                        {shortenTxHash(row.txHash)}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        {/* Tags column kept for layout parity — no tag data (Failed/Spam) in the model yet */}
+                        <TableCell className="w-24 p-3 py-2.5 align-middle" />
+                        <TableCell className="w-24 p-3 py-2.5 align-middle whitespace-nowrap text-sm tabular-nums text-muted-foreground">
+                          <a
+                            href={explorerTxUrl(row.chain, row.txHash)}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            {shortenTxHash(row.txHash)}
+                          </a>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </TableSection>
         ))
       )}

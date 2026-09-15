@@ -49,6 +49,77 @@ describe('ActivityTable', () => {
     expect(screen.getByText('No activity yet')).toBeInTheDocument()
   })
 
+  it('renders a TokenIcon fallback for each leg using its tokenId', () => {
+    const rows: ActivityRow[] = [
+      {
+        chain: 'solana',
+        walletAddress: 'wallet1',
+        txHash: '1234567890abcdef',
+        timestamp: 1_789_400_000,
+        legs: [
+          {
+            direction: 'in',
+            chain: 'solana',
+            tokenId: 'usdc',
+            amount: 10,
+            priceUsdAtTx: 1,
+            valueUsd: 10,
+            valueMainCurrency: 10,
+          },
+        ],
+      },
+    ]
+    render(<ActivityTable rows={rows} mainCurrency="SOL" />)
+    expect(screen.getByText('US')).toBeInTheDocument()
+  })
+
+  it('links Tx hash to solscan for solana rows and bscscan for bsc rows', () => {
+    const rows: ActivityRow[] = [
+      {
+        chain: 'solana',
+        walletAddress: 'wallet1',
+        txHash: 'sol1234567890abcdef',
+        timestamp: 1_789_400_000,
+        legs: [],
+      },
+      {
+        chain: 'bsc',
+        walletAddress: 'wallet2',
+        txHash: 'bsc1234567890abcdef',
+        timestamp: 1_789_400_000,
+        legs: [],
+      },
+    ]
+    render(<ActivityTable rows={rows} mainCurrency="SOL" />)
+    const links = screen.getAllByRole('link')
+    const solLink = links.find((link) =>
+      link.getAttribute('href')?.includes('sol1234567890abcdef'),
+    )
+    const bscLink = links.find((link) =>
+      link.getAttribute('href')?.includes('bsc1234567890abcdef'),
+    )
+    expect(solLink).toHaveAttribute('href', 'https://solscan.io/tx/sol1234567890abcdef')
+    expect(solLink).toHaveAttribute('target', '_blank')
+    expect(solLink).toHaveAttribute('rel', 'noreferrer noopener')
+    expect(bscLink).toHaveAttribute('href', 'https://bscscan.com/tx/bsc1234567890abcdef')
+  })
+
+  it('applies a hover transition class to each activity row', () => {
+    const rows: ActivityRow[] = [
+      {
+        chain: 'solana',
+        walletAddress: 'wallet1',
+        txHash: '1234567890abcdef',
+        timestamp: 1_789_400_000,
+        legs: [],
+      },
+    ]
+    const { container } = render(<ActivityTable rows={rows} mainCurrency="SOL" />)
+    const row = container.querySelector('tbody tr')
+    expect(row).toHaveClass('hover:bg-muted/30')
+    expect(row).toHaveClass('transition-colors')
+  })
+
   it('renders exact hand-computed §5.3 valueUsd/valueMainCurrency for a known timestamp', () => {
     // Hand-computed per §5.3, using clean round numbers in place of a live
     // DefiLlama lookup (a unit test has no network access):
