@@ -1,4 +1,7 @@
-import { Pill } from '../ui/Pill'
+import { useState } from 'react'
+import { CaretDown, Check } from '@phosphor-icons/react'
+import { Popover } from '../ui/Popover'
+import { TokenIcon } from '../ui/TokenIcon'
 
 interface CurrencySwitcherProps {
   value: string
@@ -7,27 +10,53 @@ interface CurrencySwitcherProps {
 }
 
 export function CurrencySwitcher({ value, onChange, options }: CurrencySwitcherProps) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <div
-      className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-input p-1"
-      role="group"
+    <Popover
+      open={open}
+      onClose={() => setOpen(false)}
+      align="right"
+      title="Currency"
+      trigger={
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          className="flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors duration-150 hover:bg-border/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:scale-[0.98]"
+        >
+          <TokenIcon symbol={value} size={24} />
+          <span className="text-sm font-medium text-foreground">{value}</span>
+          <CaretDown weight="bold" className="size-3.5 shrink-0 text-muted-foreground" />
+        </button>
+      }
     >
-      {options.map((symbol) => {
-        const active = symbol === value
-        return (
-          <button
-            key={symbol}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onChange(symbol)}
-            className="rounded-full transition-transform duration-150 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-1 focus-visible:ring-offset-input"
-          >
-            <Pill variant={active ? 'accent' : 'muted'} className="transition-colors duration-150 ease-out">
-              {symbol}
-            </Pill>
-          </button>
-        )
-      })}
-    </div>
+      <ul role="listbox" aria-label="Currency" className="flex flex-col gap-0.5">
+        {options.map((symbol) => {
+          const active = symbol === value
+          return (
+            <li key={symbol}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => {
+                  onChange(symbol)
+                  setOpen(false)
+                }}
+                className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  active ? 'text-foreground' : 'text-muted-foreground'
+                }`}
+              >
+                <TokenIcon symbol={symbol} size={20} />
+                <span className="flex-1 truncate text-left">{symbol}</span>
+                {active && <Check weight="bold" className="size-4 shrink-0 text-accent" />}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </Popover>
   )
 }
