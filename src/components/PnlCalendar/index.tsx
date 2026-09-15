@@ -10,6 +10,10 @@ import { formatSignedUsd, formatUsd, formatSignedMainCurrency } from '../../lib/
 interface PnlCalendarProps {
   days: PnlCalendarDay[]
   mainCurrency: string
+  /** Controlled open state. When provided, the built-in trigger button is not
+   * rendered — the opener lives elsewhere (e.g. the Spot PnL card footer). */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -47,8 +51,19 @@ function heatmapClasses(pnlUsd: number): string {
   return tiers[tier]
 }
 
-export function PnlCalendar({ days, mainCurrency }: PnlCalendarProps) {
-  const [open, setOpen] = useState(false)
+export function PnlCalendar({
+  days,
+  mainCurrency,
+  open: controlledOpen,
+  onOpenChange,
+}: PnlCalendarProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : uncontrolledOpen
+  const setOpen = (next: boolean) => {
+    if (isControlled) onOpenChange?.(next)
+    else setUncontrolledOpen(next)
+  }
 
   const byDate = useMemo(() => {
     const map = new Map<string, PnlCalendarDay>()
@@ -124,14 +139,16 @@ export function PnlCalendar({ days, mainCurrency }: PnlCalendarProps) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-input px-3 py-1.5 text-sm text-foreground-secondary hover:text-foreground"
-      >
-        <CalendarBlank weight="bold" size={16} />
-        Calendar
-      </button>
+      {!isControlled && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-input px-3 py-1.5 text-sm text-foreground-secondary hover:text-foreground"
+        >
+          <CalendarBlank weight="bold" size={16} />
+          Calendar
+        </button>
+      )}
 
       <Modal open={open} onClose={() => setOpen(false)} title="PnL Calendar">
         <div className="mb-4 flex items-center justify-between">
