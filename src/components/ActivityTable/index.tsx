@@ -17,6 +17,7 @@ import {
 import { TableSection } from '../ui/TableSection'
 import { Pill } from '../ui/Pill'
 import { TokenIcon } from '../ui/TokenIcon'
+import { Tooltip } from '../ui/Tooltip'
 import { formatMainCurrency } from '../../lib/format/currency'
 import { formatAmount } from '../../lib/format/number'
 
@@ -61,7 +62,7 @@ function formatLeg(leg: ActivityLegRow, mainCurrency: string): string {
   const sign = leg.direction === 'in' ? '+' : '-'
   const amount = formatAmount(leg.amount, { maxFractionDigits: 4 })
   const value = formatMainCurrency(leg.valueMainCurrency, mainCurrency)
-  return `${sign}${amount} (${value})`
+  return `${sign}${amount} ${leg.symbol} (${value})`
 }
 
 function groupByUtcDay(rows: ActivityRow[]): [string, ActivityRow[]][] {
@@ -160,8 +161,10 @@ export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
                           <div className="flex flex-col gap-1">
                             {received.map((leg, i) => (
                               <div key={i} className="flex items-center gap-1.5 text-sm text-success">
-                                <TokenIcon symbol={leg.tokenId} size={16} />
-                                {formatLeg(leg, mainCurrency)}
+                                <Tooltip content={leg.name}>
+                                  <TokenIcon symbol={leg.symbol} iconUrl={leg.iconUrl} size={16} />
+                                </Tooltip>
+                                <span className="truncate text-success">{formatLeg(leg, mainCurrency)}</span>
                               </div>
                             ))}
                           </div>
@@ -170,8 +173,10 @@ export function ActivityTable({ rows, mainCurrency }: ActivityTableProps) {
                           <div className="flex flex-col gap-1">
                             {sent.map((leg, i) => (
                               <div key={i} className="flex items-center gap-1.5 text-sm text-destructive">
-                                <TokenIcon symbol={leg.tokenId} size={16} />
-                                {formatLeg(leg, mainCurrency)}
+                                <Tooltip content={leg.name}>
+                                  <TokenIcon symbol={leg.symbol} iconUrl={leg.iconUrl} size={16} />
+                                </Tooltip>
+                                <span className="truncate text-destructive">{formatLeg(leg, mainCurrency)}</span>
                               </div>
                             ))}
                           </div>

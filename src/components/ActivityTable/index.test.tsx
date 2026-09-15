@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
 import { ActivityTable } from './index'
 import { demoActivity } from '../../lib/fixtures/demoData'
 import type { ActivityRow } from '../../hooks/useActivity'
 import { formatAmount } from '../../lib/format/number'
 import { formatMainCurrency } from '../../lib/format/currency'
+
+afterEach(cleanup)
 
 describe('ActivityTable', () => {
   it('groups rows into one TableSection per UTC calendar day', () => {
@@ -33,6 +35,9 @@ describe('ActivityTable', () => {
             chain: 'solana',
             tokenId: 'token1',
             amount: 10,
+            symbol: 'TOK1',
+            name: 'Token One',
+            iconUrl: null,
             priceUsdAtTx: null,
             valueUsd: null,
             valueMainCurrency: null,
@@ -49,7 +54,7 @@ describe('ActivityTable', () => {
     expect(screen.getByText('No activity yet')).toBeInTheDocument()
   })
 
-  it('renders a TokenIcon fallback for each leg using its tokenId', () => {
+  it('renders a TokenIcon fallback for each leg using its resolved symbol', () => {
     const rows: ActivityRow[] = [
       {
         chain: 'solana',
@@ -60,8 +65,11 @@ describe('ActivityTable', () => {
           {
             direction: 'in',
             chain: 'solana',
-            tokenId: 'usdc',
+            tokenId: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
             amount: 10,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            iconUrl: null,
             priceUsdAtTx: 1,
             valueUsd: 10,
             valueMainCurrency: 10,
@@ -146,6 +154,9 @@ describe('ActivityTable', () => {
             chain: 'solana',
             tokenId: 'token1',
             amount,
+            symbol: 'TOK1',
+            name: 'Token One',
+            iconUrl: null,
             priceUsdAtTx,
             valueUsd,
             valueMainCurrency,
@@ -160,6 +171,6 @@ describe('ActivityTable', () => {
     // formatMainCurrency helpers from src/lib/format, not a re-implementation.
     const amountText = formatAmount(amount, { maxFractionDigits: 4 })
     const valueText = formatMainCurrency(valueMainCurrency, 'SOL')
-    expect(screen.getByText(`+${amountText} (${valueText})`)).toBeInTheDocument()
+    expect(screen.getByText(`+${amountText} TOK1 (${valueText})`)).toBeInTheDocument()
   })
 })
