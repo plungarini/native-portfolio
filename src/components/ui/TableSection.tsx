@@ -8,7 +8,7 @@ interface TableSectionProps {
 
 export function TableSection({ title, badge, children }: TableSectionProps) {
   return (
-    <section className="rounded-2xl border border-foreground/[0.03] bg-card max-sm:rounded-none max-sm:border-x-0 max-sm:-mx-5">
+    <section className="rounded-2xl border border-foreground/[0.03] bg-card">
       <header className="flex items-center justify-between rounded-xl bg-border/50 px-4 py-2">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
         {badge !== undefined && (
