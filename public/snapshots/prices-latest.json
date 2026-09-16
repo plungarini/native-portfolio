@@ -1,53 +1,53 @@
 {
-  "generatedAt": "2026-09-16T16:18:45.936Z",
+  "generatedAt": "2026-09-16T20:58:02.662Z",
   "prices": {
     "SOL": {
-      "usd": 97.22071403589278,
+      "usd": 98.53303232123724,
       "symbol": "SOL",
       "coingeckoId": "solana",
-      "timestamp": 1789575410
+      "timestamp": 1789592140
     },
     "BNB": {
-      "usd": 712.1211904451925,
+      "usd": 719.3737975094456,
       "symbol": "BNB",
       "coingeckoId": "binancecoin",
-      "timestamp": 1789575410
+      "timestamp": 1789592140
     },
     "USDC": {
-      "usd": 0.9997114285052517,
+      "usd": 0.9996873868620336,
       "symbol": "USDC",
       "coingeckoId": "usd-coin",
-      "timestamp": 1789575410
+      "timestamp": 1789592140
     },
     "USDT": {
-      "usd": 0.999446911996573,
+      "usd": 0.9992893335250363,
       "symbol": "USDT",
       "coingeckoId": "tether",
-      "timestamp": 1789575410
+      "timestamp": 1789592140
     },
     "JUP": {
-      "usd": 0.2124208685462506,
+      "usd": 0.2160518845133799,
       "symbol": "JUP",
       "coingeckoId": "jupiter-exchange-solana",
-      "timestamp": 1789575410
+      "timestamp": 1789591600
     },
     "CAKE": {
-      "usd": 2.178600402909712,
+      "usd": 2.2454755073080026,
       "symbol": "CAKE",
       "coingeckoId": "pancakeswap-token",
-      "timestamp": 1789575410
+      "timestamp": 1789591600
     },
     "WBNB": {
-      "usd": 710.5478767926153,
+      "usd": 717.9873032584156,
       "symbol": "WBNB",
       "coingeckoId": "wbnb",
-      "timestamp": 1789575410
+      "timestamp": 1789592140
     },
     "WETH": {
-      "usd": 2395.162715661233,
+      "usd": 2409.0049351997095,
       "symbol": "WETH",
       "coingeckoId": "weth",
-      "timestamp": 1789575410
+      "timestamp": 1789592140
     }
   }
 }
